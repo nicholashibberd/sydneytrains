@@ -6,6 +6,7 @@ defmodule Sydneytrains.Api.TripDestination do
   schema "trip_destinations" do
     field :last_stop, :string
     field :departure_time, :string
+    field :departure_datetime, :naive_datetime
     field :stop_id, :string
     field :date, :date
   end

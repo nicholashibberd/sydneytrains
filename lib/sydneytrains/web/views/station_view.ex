@@ -9,8 +9,6 @@ defmodule Sydneytrains.Web.StationView do
 
   def render("show.json", %{station: station, trips: trips}) do
     %{name: station.name,
-      stop_id: station.stop_id,
-      stops: station.stops |> Enum.map(&(&1.stop_id)),
       trips: trips
     }
   end

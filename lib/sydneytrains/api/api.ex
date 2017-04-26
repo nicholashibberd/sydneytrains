@@ -6,6 +6,8 @@ defmodule Sydneytrains.Api do
   """
 
   import Ecto.{Query, Changeset}, warn: false
+  import Sydneytrains.DateUtils
+
   alias Sydneytrains.Repo
 
   alias Sydneytrains.Api.Route
@@ -115,10 +117,11 @@ defmodule Sydneytrains.Api do
 
   alias Sydneytrains.Api.TripDestination
 
-  def list_trips_by_station_and_date(stop_id, date) do
+  def list_trips_by_station_and_date(stop_ids, date) do
+    time = current_time
     query = from t in TripDestination, 
-      # where: t.stop_id == ^stop_id and t.date == type(^date, Ecto.Date),
-      where: t.stop_id == "2223291" and t.date == type(^date, Ecto.Date)
+      where: t.stop_id in ^stop_ids and t.date == type(^date, Ecto.Date) and t.departure_datetime >= type(^time, Ecto.DateTime),
+      order_by: t.departure_time
     Repo.all(query)
   end
 

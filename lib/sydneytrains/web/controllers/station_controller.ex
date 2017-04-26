@@ -1,7 +1,6 @@
-require IEx
-
 defmodule Sydneytrains.Web.StationController do
   use Sydneytrains.Web, :controller
+  import Sydneytrains.DateUtils
 
   alias Sydneytrains.Api
   alias Sydneytrains.Api.Station
@@ -15,13 +14,8 @@ defmodule Sydneytrains.Web.StationController do
 
   def show(conn, %{"id" => id}) do
     station = Api.get_station_with_stops(id)
-    trips = Api.list_trips_by_station_and_date(station.stop_id, current_date)
+    stop_ids = station.stops |> Enum.map(&(&1.stop_id))
+    trips = Api.list_trips_by_station_and_date(stop_ids, current_date)
     render(conn, "show.json", station: station, trips: trips)
-  end
-
-  defp current_date do
-    {{y, m, d}, _} = :calendar.local_time
-    {:ok, date} = Date.new(y, m, d)
-    Date.to_string(date)
   end
 end
