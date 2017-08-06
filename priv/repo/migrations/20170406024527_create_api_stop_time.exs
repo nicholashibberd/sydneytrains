@@ -18,6 +18,7 @@ defmodule Sydneytrains.Repo.Migrations.CreateSydneytrains.Api.StopTime do
 
     execute "alter table api_stop_times alter column inserted_at set default now();"
     execute "alter table api_stop_times alter column updated_at set default now();"
+    execute "\COPY api_stop_times(trip_id,arrival_time,departure_time,stop_id,stop_sequence,stop_headsign,pickup_type,drop_off_type,shape_dist_traveled) FROM '/var/lib/sydneytrains/stop_times.txt' DELIMITER ',' CSV HEADER;"
   end
 
   def down do

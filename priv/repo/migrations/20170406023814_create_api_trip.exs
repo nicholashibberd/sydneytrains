@@ -18,6 +18,7 @@ defmodule Sydneytrains.Repo.Migrations.CreateSydneytrains.Api.Trip do
 
     execute "alter table api_trips alter column inserted_at set default now();"
     execute "alter table api_trips alter column updated_at set default now();"
+    execute "\COPY api_trips(route_id, service_id, trip_id, trip_headsign, trip_short_name, direction_id, block_id, shape_id, wheelchair_accessible) FROM '/var/lib/sydneytrains/trips.txt' DELIMITER ',' CSV HEADER;"
   end
 
   def down do

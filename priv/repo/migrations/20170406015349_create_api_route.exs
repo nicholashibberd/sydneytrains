@@ -18,6 +18,7 @@ defmodule Sydneytrains.Repo.Migrations.CreateSydneytrains.Api.Route do
 
     execute "alter table api_routes alter column inserted_at set default now();"
     execute "alter table api_routes alter column updated_at set default now();"
+    execute "\COPY api_routes(route_id, agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_color, route_text_color) FROM '/var/lib/sydneytrains/routes.txt' DELIMITER ',' CSV HEADER;"
   end
 
   def down do
