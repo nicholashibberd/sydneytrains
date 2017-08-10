@@ -12,8 +12,9 @@ config :logger, level: :warn
 # Configure your database
 config :sydneytrains, Sydneytrains.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
+  username: "sydneytrains",
+  password: "password",
   database: "sydneytrains_test",
   hostname: "localhost",
+  port: 5433,
   pool: Ecto.Adapters.SQL.Sandbox

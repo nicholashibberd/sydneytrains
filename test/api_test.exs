@@ -13,11 +13,6 @@ defmodule Sydneytrains.ApiTest do
     route
   end
 
-  test "list_routes/1 returns all routes" do
-    route = fixture(:route)
-    assert Api.list_routes() == [route]
-  end
-
   test "get_route! returns the route with given id" do
     route = fixture(:route)
     assert Api.get_route!(route.id) == route

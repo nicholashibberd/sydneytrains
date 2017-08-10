@@ -276,5 +276,11 @@ defmodule Sydneytrains.Api do
     |> validate_required([:service_id, :monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday, :start_date, :end_date])
   end
 
+  alias Sydneytrains.Api.Planner
 
+  require IEx
+
+  def plan(params) do
+    Planner.plan(params)
+  end
 end

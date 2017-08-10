@@ -17,6 +17,7 @@ defmodule Sydneytrains.Web.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
+    get "/planner", PlannerController, :index
 
     resources "/routes", RouteController, except: [:new, :edit]
     resources "/stops", StopController, only: [:index, :show]

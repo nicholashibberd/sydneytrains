@@ -12,6 +12,6 @@ defmodule Sydneytrains.Repo.Migrations.ServiceDates do
   end
 
   def down do
-    execute "DROP MATERIALZED VIEW service_dates;"
+    execute "DROP MATERIALIZED VIEW service_dates;"
   end
 end
