@@ -5,3 +5,24 @@
 .jumbotron {
   text-align: left;
 }
+
+.autocomplete {
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  z-index: 1;
+
+  .suggestion {
+    display: block;
+    padding: 10px;
+    cursor: pointer;
+
+    &.active {
+      background: #eee;
+    }
+  }
+}

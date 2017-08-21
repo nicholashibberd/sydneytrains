@@ -1,4 +1,4 @@
 import Form from "./elm/form.js"
 
 var node = document.getElementById('main');
-Form.Main.embed(node);
+Form.Main.embed(node, {stations: allStations});

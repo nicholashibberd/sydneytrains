@@ -52,7 +52,8 @@ exports.config = {
     elmBrunch: {
       elmFolder: "elm",
       mainModules: ["Form.elm"],
-      outputFolder: "../js/elm"
+      outputFolder: "../js/elm",
+      makeParameters: ["--debug"]
     },
     sass: {
       options: {
