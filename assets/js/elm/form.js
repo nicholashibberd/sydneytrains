@@ -13809,6 +13809,17 @@ var _user$project$Main$suggestStations = F2(
 				_user$project$Main$matchFn(text),
 				stations));
 	});
+var _user$project$Main$selectToStation = F2(
+	function (station, model) {
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				displayToSuggestions: false,
+				toStation: _elm_lang$core$Maybe$Just(station),
+				toValue: station.name,
+				suggestionIndex: _elm_lang$core$Maybe$Nothing
+			});
+	});
 var _user$project$Main$selectFromStation = F2(
 	function (station, model) {
 		return _elm_lang$core$Native_Utils.update(
@@ -13848,7 +13859,7 @@ var _user$project$Main$update = F2(
 						model,
 						{suggestions: suggestions, displayFromSuggestions: true, fromValue: _p10}),
 					{ctor: '[]'});
-			case 'HandleEnter':
+			case 'HandleFromEnter':
 				var _p11 = A2(_user$project$Main$stationAtIndex, model.suggestions, model.suggestionIndex);
 				if (_p11.ctor === 'Just') {
 					return A2(
@@ -13861,7 +13872,7 @@ var _user$project$Main$update = F2(
 						model,
 						{ctor: '[]'});
 				}
-			case 'HandleKeyDown':
+			case 'HandleFromKeyDown':
 				return _elm_lang$core$Native_Utils.eq(model.displayFromSuggestions, false) ? A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
@@ -13882,6 +13893,31 @@ var _user$project$Main$update = F2(
 							suggestionIndex: _user$project$Main$decrementSuggestionIndex(model)
 						}),
 					{ctor: '[]'});
+			case 'HandleToEnter':
+				var _p12 = A2(_user$project$Main$stationAtIndex, model.suggestions, model.suggestionIndex);
+				if (_p12.ctor === 'Just') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						A2(_user$project$Main$selectToStation, _p12._0, model),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{ctor: '[]'});
+				}
+			case 'HandleToKeyDown':
+				return _elm_lang$core$Native_Utils.eq(model.displayToSuggestions, false) ? A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					{ctor: '[]'}) : A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							suggestionIndex: _user$project$Main$incrementSuggestionIndex(model)
+						}),
+					{ctor: '[]'});
 			case 'HighlightSuggestion':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -13898,13 +13934,50 @@ var _user$project$Main$update = F2(
 						model,
 						{suggestionIndex: _elm_lang$core$Maybe$Nothing}),
 					{ctor: '[]'});
-			default:
+			case 'SelectFromStation':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					A2(_user$project$Main$selectFromStation, _p9._0, model),
 					{ctor: '[]'});
+			case 'SelectToStation':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					A2(_user$project$Main$selectToStation, _p9._0, model),
+					{ctor: '[]'});
+			case 'ToInputBlur':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							suggestions: {ctor: '[]'},
+							displayToSuggestions: false
+						}),
+					{ctor: '[]'});
+			default:
+				var _p13 = _p9._0;
+				var suggestions = A2(_user$project$Main$suggestStations, _p13, model.stations);
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{suggestions: suggestions, displayToSuggestions: true, toValue: _p13}),
+					{ctor: '[]'});
 		}
 	});
+var _user$project$Main$emptyModel = {
+	stations: {ctor: '[]'},
+	error: false,
+	errorMessage: '',
+	suggestions: {ctor: '[]'},
+	displayFromSuggestions: false,
+	displayToSuggestions: false,
+	fromStation: _elm_lang$core$Maybe$Nothing,
+	fromValue: '',
+	toStation: _elm_lang$core$Maybe$Nothing,
+	toValue: '',
+	suggestionIndex: _elm_lang$core$Maybe$Nothing
+};
 var _user$project$Main$Station = F2(
 	function (a, b) {
 		return {name: a, stop_id: b};
@@ -13920,45 +13993,53 @@ var _user$project$Main$decodeStations = function (jsonString) {
 		_elm_lang$core$Json_Decode$list(_user$project$Main$stationDecoder),
 		jsonString);
 };
-var _user$project$Main$init = function (_p12) {
-	var _p13 = _p12;
-	var _p14 = _user$project$Main$decodeStations(_p13.stations);
-	if (_p14.ctor === 'Ok') {
+var _user$project$Main$init = function (_p14) {
+	var _p15 = _p14;
+	var _p16 = _user$project$Main$decodeStations(_p15.stations);
+	if (_p16.ctor === 'Ok') {
 		return A2(
 			_elm_lang$core$Platform_Cmd_ops['!'],
-			{
-				stations: _p14._0,
-				error: false,
-				errorMessage: '',
-				suggestions: {ctor: '[]'},
-				displayFromSuggestions: false,
-				fromStation: _elm_lang$core$Maybe$Nothing,
-				fromValue: '',
-				suggestionIndex: _elm_lang$core$Maybe$Nothing
-			},
+			_elm_lang$core$Native_Utils.update(
+				_user$project$Main$emptyModel,
+				{stations: _p16._0}),
 			{ctor: '[]'});
 	} else {
 		return A2(
 			_elm_lang$core$Platform_Cmd_ops['!'],
-			{
-				stations: {ctor: '[]'},
-				error: true,
-				errorMessage: _p14._0,
-				suggestions: {ctor: '[]'},
-				displayFromSuggestions: false,
-				fromStation: _elm_lang$core$Maybe$Nothing,
-				fromValue: '',
-				suggestionIndex: _elm_lang$core$Maybe$Nothing
-			},
+			_elm_lang$core$Native_Utils.update(
+				_user$project$Main$emptyModel,
+				{errorMessage: _p16._0, error: false}),
 			{ctor: '[]'});
 	}
 };
-var _user$project$Main$Model = F8(
-	function (a, b, c, d, e, f, g, h) {
-		return {stations: a, error: b, errorMessage: c, suggestions: d, displayFromSuggestions: e, fromStation: f, fromValue: g, suggestionIndex: h};
-	});
+var _user$project$Main$Model = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return {stations: a, error: b, errorMessage: c, suggestions: d, displayFromSuggestions: e, fromStation: f, fromValue: g, displayToSuggestions: h, toStation: i, toValue: j, suggestionIndex: k};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
 var _user$project$Main$Flags = function (a) {
 	return {stations: a};
+};
+var _user$project$Main$SelectToStation = function (a) {
+	return {ctor: 'SelectToStation', _0: a};
 };
 var _user$project$Main$SelectFromStation = function (a) {
 	return {ctor: 'SelectFromStation', _0: a};
@@ -13967,12 +14048,12 @@ var _user$project$Main$RemoveHighlight = {ctor: 'RemoveHighlight'};
 var _user$project$Main$HighlightSuggestion = function (a) {
 	return {ctor: 'HighlightSuggestion', _0: a};
 };
-var _user$project$Main$suggestion = F3(
-	function (maybeSelected, idx, station) {
+var _user$project$Main$suggestion = F4(
+	function (msg, maybeSelected, idx, station) {
 		var selected = function () {
-			var _p15 = maybeSelected;
-			if (_p15.ctor === 'Just') {
-				return _elm_lang$core$Native_Utils.eq(idx, _p15._0);
+			var _p17 = maybeSelected;
+			if (_p17.ctor === 'Just') {
+				return _elm_lang$core$Native_Utils.eq(idx, _p17._0);
 			} else {
 				return false;
 			}
@@ -13994,7 +14075,7 @@ var _user$project$Main$suggestion = F3(
 				_1: {
 					ctor: '::',
 					_0: _elm_lang$html$Html_Events$onMouseDown(
-						_user$project$Main$SelectFromStation(station)),
+						msg(station)),
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$html$Html_Events$onMouseEnter(
@@ -14013,42 +14094,62 @@ var _user$project$Main$suggestion = F3(
 				_1: {ctor: '[]'}
 			});
 	});
-var _user$project$Main$suggestionsDropdown = function (_p16) {
-	var _p17 = _p16;
-	return _p17.displayFromSuggestions ? A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('dropdown'),
-			_1: {ctor: '[]'}
-		},
-		A2(
-			_elm_lang$core$List$indexedMap,
-			_user$project$Main$suggestion(_p17.suggestionIndex),
-			_p17.suggestions)) : _elm_lang$html$Html$text('');
-};
+var _user$project$Main$suggestionsDropdown = F4(
+	function (displayFromSuggestions, suggestions, suggestionIndex, msg) {
+		return displayFromSuggestions ? A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('dropdown'),
+				_1: {ctor: '[]'}
+			},
+			A2(
+				_elm_lang$core$List$indexedMap,
+				A2(_user$project$Main$suggestion, msg, suggestionIndex),
+				suggestions)) : _elm_lang$html$Html$text('');
+	});
+var _user$project$Main$HandleToKeyDown = {ctor: 'HandleToKeyDown'};
+var _user$project$Main$HandleToEnter = {ctor: 'HandleToEnter'};
 var _user$project$Main$HandleKeyUp = {ctor: 'HandleKeyUp'};
-var _user$project$Main$HandleKeyDown = {ctor: 'HandleKeyDown'};
-var _user$project$Main$HandleEnter = {ctor: 'HandleEnter'};
+var _user$project$Main$HandleFromKeyDown = {ctor: 'HandleFromKeyDown'};
+var _user$project$Main$HandleFromEnter = {ctor: 'HandleFromEnter'};
+var _user$project$Main$ToInputBlur = {ctor: 'ToInputBlur'};
+var _user$project$Main$ToInputChanged = function (a) {
+	return {ctor: 'ToInputChanged', _0: a};
+};
 var _user$project$Main$FromInputBlur = {ctor: 'FromInputBlur'};
 var _user$project$Main$FromInputChanged = function (a) {
 	return {ctor: 'FromInputChanged', _0: a};
 };
 var _user$project$Main$DoNothing = {ctor: 'DoNothing'};
-var _user$project$Main$handleKeyPress = function (keyCode) {
+var _user$project$Main$handleFromKeyPress = function (keyCode) {
 	var _p18 = keyCode;
 	switch (_p18) {
 		case 13:
-			return _user$project$Main$HandleEnter;
+			return _user$project$Main$HandleFromEnter;
 		case 38:
 			return _user$project$Main$HandleKeyUp;
 		case 40:
-			return _user$project$Main$HandleKeyDown;
+			return _user$project$Main$HandleFromKeyDown;
+		default:
+			return _user$project$Main$DoNothing;
+	}
+};
+var _user$project$Main$handleToKeyPress = function (keyCode) {
+	var _p19 = keyCode;
+	switch (_p19) {
+		case 13:
+			return _user$project$Main$HandleToEnter;
+		case 38:
+			return _user$project$Main$HandleKeyUp;
+		case 40:
+			return _user$project$Main$HandleToKeyDown;
 		default:
 			return _user$project$Main$DoNothing;
 	}
 };
 var _user$project$Main$view = function (model) {
+	var suggestionsFn = A3(_user$project$Main$suggestionsDropdown, model.displayFromSuggestions, model.suggestions, model.suggestionIndex);
 	return model.error ? _elm_lang$html$Html$text(model.errorMessage) : A2(
 		_elm_lang$html$Html$div,
 		{
@@ -14120,7 +14221,7 @@ var _user$project$Main$view = function (model) {
 																		_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$FromInputChanged),
 																		_1: {
 																			ctor: '::',
-																			_0: _user$project$Main$onKeyPress(_user$project$Main$handleKeyPress),
+																			_0: _user$project$Main$onKeyPress(_user$project$Main$handleFromKeyPress),
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Attributes$value(model.fromValue),
@@ -14137,7 +14238,7 @@ var _user$project$Main$view = function (model) {
 											{ctor: '[]'}),
 										_1: {
 											ctor: '::',
-											_0: _user$project$Main$suggestionsDropdown(model),
+											_0: suggestionsFn(_user$project$Main$SelectFromStation),
 											_1: {ctor: '[]'}
 										}
 									}),
@@ -14182,10 +14283,10 @@ var _user$project$Main$view = function (model) {
 												_elm_lang$html$Html$input,
 												{
 													ctor: '::',
-													_0: _elm_lang$html$Html_Attributes$autocomplete(false),
+													_0: _elm_lang$html$Html_Attributes$id('toStation'),
 													_1: {
 														ctor: '::',
-														_0: _elm_lang$html$Html_Attributes$id('toStation'),
+														_0: _elm_lang$html$Html_Attributes$autocomplete(false),
 														_1: {
 															ctor: '::',
 															_0: _elm_lang$html$Html_Attributes$type_('text'),
@@ -14195,14 +14296,34 @@ var _user$project$Main$view = function (model) {
 																_1: {
 																	ctor: '::',
 																	_0: _elm_lang$html$Html_Attributes$placeholder('Destination station'),
-																	_1: {ctor: '[]'}
+																	_1: {
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Events$onBlur(_user$project$Main$ToInputBlur),
+																		_1: {
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$ToInputChanged),
+																			_1: {
+																				ctor: '::',
+																				_0: _user$project$Main$onKeyPress(_user$project$Main$handleToKeyPress),
+																				_1: {
+																					ctor: '::',
+																					_0: _elm_lang$html$Html_Attributes$value(model.toValue),
+																					_1: {ctor: '[]'}
+																				}
+																			}
+																		}
+																	}
 																}
 															}
 														}
 													}
 												},
 												{ctor: '[]'}),
-											_1: {ctor: '[]'}
+											_1: {
+												ctor: '::',
+												_0: suggestionsFn(_user$project$Main$SelectToStation),
+												_1: {ctor: '[]'}
+											}
 										}),
 									_1: {ctor: '[]'}
 								}
@@ -14360,7 +14481,7 @@ var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 		init: _user$project$Main$init,
 		view: _user$project$Main$view,
 		update: _user$project$Main$update,
-		subscriptions: function (_p19) {
+		subscriptions: function (_p20) {
 			return _elm_lang$core$Platform_Sub$none;
 		}
 	})(
@@ -14375,7 +14496,7 @@ var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 var Elm = {};
 Elm['Main'] = Elm['Main'] || {};
 if (typeof _user$project$Main$main !== 'undefined') {
-    _user$project$Main$main(Elm['Main'], 'Main', {"types":{"unions":{"Main.Msg":{"args":[],"tags":{"HighlightSuggestion":["Int"],"HandleEnter":[],"FromInputChanged":["String"],"RemoveHighlight":[],"FromInputBlur":[],"SelectFromStation":["Main.Station"],"HandleKeyDown":[],"HandleKeyUp":[],"DoNothing":[]}}},"aliases":{"Main.Station":{"args":[],"type":"{ name : String, stop_id : String }"}},"message":"Main.Msg"},"versions":{"elm":"0.18.0"}});
+    _user$project$Main$main(Elm['Main'], 'Main', {"types":{"unions":{"Main.Msg":{"args":[],"tags":{"HandleToKeyDown":[],"ToInputBlur":[],"HighlightSuggestion":["Int"],"FromInputChanged":["String"],"RemoveHighlight":[],"FromInputBlur":[],"HandleFromKeyDown":[],"HandleFromEnter":[],"SelectFromStation":["Main.Station"],"ToInputChanged":["String"],"HandleKeyUp":[],"DoNothing":[],"SelectToStation":["Main.Station"],"HandleToEnter":[]}}},"aliases":{"Main.Station":{"args":[],"type":"{ name : String, stop_id : String }"}},"message":"Main.Msg"},"versions":{"elm":"0.18.0"}});
 }
 
 if (typeof define === "function" && define['amd'])

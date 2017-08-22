@@ -43,6 +43,9 @@ type alias Model =
   , displayFromSuggestions : Bool
   , fromStation : Maybe Station
   , fromValue : String
+  , displayToSuggestions : Bool
+  , toStation : Maybe Station
+  , toValue : String
   , suggestionIndex : Maybe Int
   }
 
@@ -68,30 +71,32 @@ decodeStations jsonString =
   Json.decodeString (Json.list stationDecoder) jsonString
 
 
+emptyModel : Model
+emptyModel =
+  { stations = []
+  , error = False
+  , errorMessage = ""
+  , suggestions = []
+  , displayFromSuggestions = False
+  , displayToSuggestions = False
+  , fromStation = Nothing
+  , fromValue = ""
+  , toStation = Nothing
+  , toValue = ""
+  , suggestionIndex = Nothing
+  }
+
+
 init : Flags -> ( Model, Cmd Msg )
 init { stations } =
   case decodeStations stations of
     Ok data ->
-      { stations = data
-      , error = False
-      , errorMessage = ""
-      , suggestions = []
-      , displayFromSuggestions = False
-      , fromStation = Nothing
-      , fromValue = ""
-      , suggestionIndex = Nothing
-      } ! []
+      { emptyModel | stations = data } ! []
 
     Err msg ->
-      { stations = []
-      , error = True
-      , errorMessage = msg
-      , suggestions = []
-      , displayFromSuggestions = False
-      , fromStation = Nothing
-      , fromValue = ""
-      , suggestionIndex = Nothing
-      } ! []
+      { emptyModel | errorMessage = msg
+                   , error = False
+                   } ! []
 
 
 -- UPDATE
@@ -100,12 +105,17 @@ type Msg =
   DoNothing
   | FromInputChanged String
   | FromInputBlur
-  | HandleEnter
-  | HandleKeyDown
+  | ToInputChanged String
+  | ToInputBlur
+  | HandleFromEnter
+  | HandleFromKeyDown
   | HandleKeyUp
+  | HandleToEnter
+  | HandleToKeyDown
   | HighlightSuggestion Int
   | RemoveHighlight
   | SelectFromStation Station
+  | SelectToStation Station
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -127,20 +137,32 @@ update msg model =
                   , fromValue = input
                   } ! []
 
-    HandleEnter ->
+    HandleFromEnter ->
       case stationAtIndex model.suggestions model.suggestionIndex of
         Just station ->
           selectFromStation station model ! []
         Nothing ->
           model ! []
 
-    HandleKeyDown ->
+    HandleFromKeyDown ->
       if model.displayFromSuggestions == False
       then  model ! []
       else { model | suggestionIndex = incrementSuggestionIndex model } ! []
 
     HandleKeyUp ->
       { model | suggestionIndex = decrementSuggestionIndex model } ! []
+
+    HandleToEnter ->
+      case stationAtIndex model.suggestions model.suggestionIndex of
+        Just station ->
+          selectToStation station model ! []
+        Nothing ->
+          model ! []
+
+    HandleToKeyDown ->
+      if model.displayToSuggestions == False
+      then  model ! []
+      else { model | suggestionIndex = incrementSuggestionIndex model } ! []
 
     HighlightSuggestion idx ->
       { model | suggestionIndex = Just idx } ! []
@@ -151,6 +173,23 @@ update msg model =
     SelectFromStation station ->
       selectFromStation station model ! []
 
+    SelectToStation station ->
+      selectToStation station model ! []
+
+    ToInputBlur ->
+      { model | suggestions = []
+              , displayToSuggestions = False 
+              } ! []
+
+    ToInputChanged input ->
+      let
+          suggestions = suggestStations input model.stations
+      in
+          { model | suggestions = suggestions
+                  , displayToSuggestions = True 
+                  , toValue = input
+                  } ! []
+
 
 selectFromStation : Station -> Model -> Model
 selectFromStation station model =
@@ -160,6 +199,15 @@ selectFromStation station model =
           , suggestionIndex = Nothing
           }
 
+
+
+selectToStation : Station -> Model -> Model
+selectToStation station model =
+  { model | displayToSuggestions = False
+          , toStation = Just station
+          , toValue = station.name
+          , suggestionIndex = Nothing
+          }
 
 
 matchFn : String -> Station -> Bool
@@ -212,8 +260,8 @@ stationAtIndex stations maybeInt =
 
 -- VIEW
 
-suggestion : Maybe Int -> Int -> Station -> Html Msg
-suggestion maybeSelected idx station =
+suggestion : (Station -> Msg) -> Maybe Int -> Int -> Station -> Html Msg
+suggestion msg maybeSelected idx station =
   let
       selected = case maybeSelected of
         Just selectedIdx ->
@@ -226,83 +274,104 @@ suggestion maybeSelected idx station =
           [ ("suggestion", True)
           , ("active", selected)
           ]
-      , onMouseDown (SelectFromStation station)
+      , onMouseDown (msg station)
       , onMouseEnter (HighlightSuggestion idx)
       , onMouseLeave (RemoveHighlight)
       -- , onEnter HandleEnter
       ] [ text station.name ]
 
 
-suggestionsDropdown : Model -> Html Msg
-suggestionsDropdown { displayFromSuggestions, suggestions, suggestionIndex } =
+suggestionsDropdown : Bool -> List Station -> Maybe Int -> (Station -> Msg) -> Html Msg
+suggestionsDropdown displayFromSuggestions suggestions suggestionIndex msg =
   if displayFromSuggestions then
-      div [ class "dropdown" ] <| List.indexedMap (suggestion suggestionIndex) suggestions
+      div [ class "dropdown" ] <| List.indexedMap (suggestion msg suggestionIndex) suggestions
   else
       text ""
 
 
 view : Model -> Html Msg
 view model =
-  if model.error then
-     text model.errorMessage
-  else
-    div [ class "jumbotron" ]
-      [ div [] 
-          [ div [ class "form-group" ]
-              [ label [ for "fromStation" ] [ text "From" ]
-              , div [ class "autocomplete" ]
-                  [ input [ id "fromStation"
-                          , autocomplete False
-                          , type_ "text"
-                          , class "form-control"
-                          , placeholder "Starting station"
-                          , onBlur FromInputBlur
-                          , onInput FromInputChanged 
-                          , onKeyPress handleKeyPress
-                          , value model.fromValue
-                          ] []
-                  , suggestionsDropdown model
-                  ]
-              ]
-          , div [ class "form-group" ]
-              [ label [ for "toStation" ] [ text "To" ]
-              , div [ class "autocomplete" ]
-                  [ input [ autocomplete False
-                          , id "toStation"
-                          , type_ "text"
-                          , class "form-control"
-                          , placeholder "Destination station" 
-                          ] []
-                  ]
-              ]
-          , div [ class "form-group" ]
-              [ div [ class "row" ]
-                  [ div [ class "col-md-6" ]
-                      [ label [ for "date" ] [ text "Date" ]
-                      , input [ id "date", type_ "date", class "form-control" ] []
-                      ]
-                  , div [ class "col-md-6" ]
-                      [ label [ for "time" ] [ text "Time" ]
-                      , input [ id "time", type_ "time", class "form-control" ] []
-                      ]
-                  ]
-              ]
-          , div [ class "form-group" ]
-              [ button [ type_ "submit", class "btn btn-default" ] [ text "Search" ]
-              ]
-          ]
-      ]
+  let
+    suggestionsFn = suggestionsDropdown model.displayFromSuggestions model.suggestions model.suggestionIndex
+  in
+    if model.error then
+       text model.errorMessage
+    else
+      div [ class "jumbotron" ]
+        [ div [] 
+            [ div [ class "form-group" ]
+                [ label [ for "fromStation" ] [ text "From" ]
+                , div [ class "autocomplete" ]
+                    [ input [ id "fromStation"
+                            , autocomplete False
+                            , type_ "text"
+                            , class "form-control"
+                            , placeholder "Starting station"
+                            , onBlur FromInputBlur
+                            , onInput FromInputChanged 
+                            , onKeyPress handleFromKeyPress
+                            , value model.fromValue
+                            ] []
+                    , suggestionsFn SelectFromStation
+                    ]
+                ]
+            , div [ class "form-group" ]
+                [ label [ for "toStation" ] [ text "To" ]
+                , div [ class "autocomplete" ]
+                    [ input [ id "toStation"
+                            , autocomplete False
+                            , type_ "text"
+                            , class "form-control"
+                            , placeholder "Destination station"
+                            , onBlur ToInputBlur
+                            , onInput ToInputChanged 
+                            , onKeyPress handleToKeyPress
+                            , value model.toValue
+                            ] []
+                    , suggestionsFn SelectToStation
+                    ]
+                ]
+            , div [ class "form-group" ]
+                [ div [ class "row" ]
+                    [ div [ class "col-md-6" ]
+                        [ label [ for "date" ] [ text "Date" ]
+                        , input [ id "date", type_ "date", class "form-control" ] []
+                        ]
+                    , div [ class "col-md-6" ]
+                        [ label [ for "time" ] [ text "Time" ]
+                        , input [ id "time", type_ "time", class "form-control" ] []
+                        ]
+                    ]
+                ]
+            , div [ class "form-group" ]
+                [ button [ type_ "submit", class "btn btn-default" ] [ text "Search" ]
+                ]
+            ]
+        ]
 
 
-handleKeyPress : Int -> Msg
-handleKeyPress keyCode =
+handleFromKeyPress : Int -> Msg
+handleFromKeyPress keyCode =
   case keyCode of
     13 ->
-      HandleEnter
+      HandleFromEnter
     38 ->
       HandleKeyUp
     40 ->
-      HandleKeyDown
+      HandleFromKeyDown
+    _ ->
+      DoNothing
+
+
+handleToKeyPress : Int -> Msg
+handleToKeyPress keyCode =
+  case keyCode of
+    13 ->
+      HandleToEnter
+    38 ->
+      HandleKeyUp
+    40 ->
+      HandleToKeyDown
     _ ->
       DoNothing
 
