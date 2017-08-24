@@ -305,9 +305,9 @@ suggestion msg maybeSelected idx station =
       ] [ text station.name ]
 
 
-suggestionsDropdown : Bool -> List Station -> Maybe Int -> (Station -> Msg) -> Html Msg
-suggestionsDropdown displayFromSuggestions suggestions suggestionIndex msg =
-  if displayFromSuggestions then
+suggestionsDropdown : List Station -> Maybe Int -> Bool -> (Station -> Msg) -> Html Msg
+suggestionsDropdown suggestions suggestionIndex displaySuggestions msg =
+  if displaySuggestions then
       div [ class "dropdown" ] <| List.indexedMap (suggestion msg suggestionIndex) suggestions
   else
       text ""
@@ -316,7 +316,7 @@ suggestionsDropdown displayFromSuggestions suggestions suggestionIndex msg =
 view : Model -> Html Msg
 view model =
   let
-    suggestionsFn = suggestionsDropdown model.displayFromSuggestions model.suggestions model.suggestionIndex
+    suggestionsFn = suggestionsDropdown model.suggestions model.suggestionIndex
   in
     if model.error then
        text model.errorMessage
@@ -336,7 +336,7 @@ view model =
                             , onKeyPress handleFromKeyPress
                             , value model.fromValue
                             ] []
-                    , suggestionsFn SelectFromStation
+                    , suggestionsFn model.displayFromSuggestions SelectFromStation
                     ]
                 ]
             , div [ class "form-group" ]
@@ -352,7 +352,7 @@ view model =
                             , onKeyPress handleToKeyPress
                             , value model.toValue
                             ] []
-                    , suggestionsFn SelectToStation
+                    , suggestionsFn model.displayToSuggestions SelectToStation
                     ]
                 ]
             , div [ class "form-group" ]

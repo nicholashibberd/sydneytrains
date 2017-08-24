@@ -14324,8 +14324,8 @@ var _user$project$Main$suggestion = F4(
 			});
 	});
 var _user$project$Main$suggestionsDropdown = F4(
-	function (displayFromSuggestions, suggestions, suggestionIndex, msg) {
-		return displayFromSuggestions ? A2(
+	function (suggestions, suggestionIndex, displaySuggestions, msg) {
+		return displaySuggestions ? A2(
 			_elm_lang$html$Html$div,
 			{
 				ctor: '::',
@@ -14374,7 +14374,7 @@ var _user$project$Main$handleToKeyPress = function (keyCode) {
 	}
 };
 var _user$project$Main$view = function (model) {
-	var suggestionsFn = A3(_user$project$Main$suggestionsDropdown, model.displayFromSuggestions, model.suggestions, model.suggestionIndex);
+	var suggestionsFn = A2(_user$project$Main$suggestionsDropdown, model.suggestions, model.suggestionIndex);
 	return model.error ? _elm_lang$html$Html$text(model.errorMessage) : A2(
 		_elm_lang$html$Html$div,
 		{
@@ -14463,7 +14463,7 @@ var _user$project$Main$view = function (model) {
 											{ctor: '[]'}),
 										_1: {
 											ctor: '::',
-											_0: suggestionsFn(_user$project$Main$SelectFromStation),
+											_0: A2(suggestionsFn, model.displayFromSuggestions, _user$project$Main$SelectFromStation),
 											_1: {ctor: '[]'}
 										}
 									}),
@@ -14546,7 +14546,7 @@ var _user$project$Main$view = function (model) {
 												{ctor: '[]'}),
 											_1: {
 												ctor: '::',
-												_0: suggestionsFn(_user$project$Main$SelectToStation),
+												_0: A2(suggestionsFn, model.displayToSuggestions, _user$project$Main$SelectToStation),
 												_1: {ctor: '[]'}
 											}
 										}),
