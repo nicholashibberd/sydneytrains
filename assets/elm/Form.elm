@@ -17,6 +17,8 @@ import Html.Attributes exposing (autocomplete,
                                  value)
 import Json.Decode as Json
 import List.Extra exposing (getAt)
+import Task
+import Time exposing (Time)
 
 main =
   Html.programWithFlags 
@@ -36,17 +38,18 @@ type alias Station =
 
 
 type alias Model =
-  { stations : List Station
+  { displayFromSuggestions : Bool
+  , displayToSuggestions : Bool
   , error : Bool
   , errorMessage : String
-  , suggestions : List Station
-  , displayFromSuggestions : Bool
   , fromStation : Maybe Station
   , fromValue : String
-  , displayToSuggestions : Bool
+  , stations : List Station
+  , suggestions : List Station
+  , suggestionIndex : Maybe Int
+  , time : Maybe Time
   , toStation : Maybe Station
   , toValue : String
-  , suggestionIndex : Maybe Int
   }
 
 
@@ -73,17 +76,18 @@ decodeStations jsonString =
 
 emptyModel : Model
 emptyModel =
-  { stations = []
+  { displayFromSuggestions = False
+  , displayToSuggestions = False
   , error = False
   , errorMessage = ""
-  , suggestions = []
-  , displayFromSuggestions = False
-  , displayToSuggestions = False
   , fromStation = Nothing
   , fromValue = ""
+  , stations = []
+  , suggestions = []
+  , suggestionIndex = Nothing
+  , time = Nothing
   , toStation = Nothing
   , toValue = ""
-  , suggestionIndex = Nothing
   }
 
 
@@ -91,7 +95,7 @@ init : Flags -> ( Model, Cmd Msg )
 init { stations } =
   case decodeStations stations of
     Ok data ->
-      { emptyModel | stations = data } ! []
+      { emptyModel | stations = data } ! [ Task.perform CurrentTimeFetched Time.now ]
 
     Err msg ->
       { emptyModel | errorMessage = msg
@@ -101,12 +105,11 @@ init { stations } =
 
 -- UPDATE
 
-type Msg = 
-  DoNothing
+type Msg
+  = CurrentTimeFetched Time
+  | DoNothing
   | FromInputChanged String
   | FromInputBlur
-  | ToInputChanged String
-  | ToInputBlur
   | HandleFromEnter
   | HandleFromKeyDown
   | HandleKeyUp
@@ -116,10 +119,17 @@ type Msg =
   | RemoveHighlight
   | SelectFromStation Station
   | SelectToStation Station
+  | SetDate String
+  | SetTime String
+  | ToInputChanged String
+  | ToInputBlur
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
+    CurrentTimeFetched time ->
+      { model | time = Just time } ! []
+
     DoNothing ->
       model ! []
 
@@ -175,6 +185,20 @@ update msg model =
 
     SelectToStation station ->
       selectToStation station model ! []
+
+    SetDate dateString ->
+      model ! []
+      -- case Date.fromString dateString of
+      --   Ok date ->
+      --     { model | date = Just date } ! []
+
+      --   Err msg ->
+      --     { model | errorMessage = msg } ! []
+
+    SetTime time ->
+      let _ = Debug.log "time" time
+      in
+        model ! []
 
     ToInputBlur ->
       { model | suggestions = []
@@ -335,11 +359,20 @@ view model =
                 [ div [ class "row" ]
                     [ div [ class "col-md-6" ]
                         [ label [ for "date" ] [ text "Date" ]
-                        , input [ id "date", type_ "date", class "form-control" ] []
+                        , input [ id "date"
+                                , class "form-control"
+                                , onInput SetDate
+                                , type_ "date"
+                                , value "2017-07-12"
+                                ] []
                         ]
                     , div [ class "col-md-6" ]
                         [ label [ for "time" ] [ text "Time" ]
-                        , input [ id "time", type_ "time", class "form-control" ] []
+                        , input [ id "time"
+                                , class "form-control"
+                                , onInput SetTime
+                                , type_ "time"
+                                ] []
                         ]
                     ]
                 ]
