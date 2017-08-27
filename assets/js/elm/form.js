@@ -6446,6 +6446,39 @@ var _elm_lang$core$Array$repeat = F2(
 	});
 var _elm_lang$core$Array$Array = {ctor: 'Array'};
 
+//import Result //
+
+var _elm_lang$core$Native_Date = function() {
+
+function fromString(str)
+{
+	var date = new Date(str);
+	return isNaN(date.getTime())
+		? _elm_lang$core$Result$Err('Unable to parse \'' + str + '\' as a date. Dates must be in the ISO 8601 format.')
+		: _elm_lang$core$Result$Ok(date);
+}
+
+var dayTable = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+var monthTable =
+	['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+	 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+
+return {
+	fromString: fromString,
+	year: function(d) { return d.getFullYear(); },
+	month: function(d) { return { ctor: monthTable[d.getMonth()] }; },
+	day: function(d) { return d.getDate(); },
+	hour: function(d) { return d.getHours(); },
+	minute: function(d) { return d.getMinutes(); },
+	second: function(d) { return d.getSeconds(); },
+	millisecond: function(d) { return d.getMilliseconds(); },
+	toTime: function(d) { return d.getTime(); },
+	fromTime: function(t) { return new Date(t); },
+	dayOfWeek: function(d) { return { ctor: dayTable[d.getDay()] }; }
+};
+
+}();
 var _elm_lang$core$Task$onError = _elm_lang$core$Native_Scheduler.onError;
 var _elm_lang$core$Task$andThen = _elm_lang$core$Native_Scheduler.andThen;
 var _elm_lang$core$Task$spawnCmd = F2(
@@ -6857,6 +6890,39 @@ var _elm_lang$core$Time$subMap = F2(
 			});
 	});
 _elm_lang$core$Native_Platform.effectManagers['Time'] = {pkg: 'elm-lang/core', init: _elm_lang$core$Time$init, onEffects: _elm_lang$core$Time$onEffects, onSelfMsg: _elm_lang$core$Time$onSelfMsg, tag: 'sub', subMap: _elm_lang$core$Time$subMap};
+
+var _elm_lang$core$Date$millisecond = _elm_lang$core$Native_Date.millisecond;
+var _elm_lang$core$Date$second = _elm_lang$core$Native_Date.second;
+var _elm_lang$core$Date$minute = _elm_lang$core$Native_Date.minute;
+var _elm_lang$core$Date$hour = _elm_lang$core$Native_Date.hour;
+var _elm_lang$core$Date$dayOfWeek = _elm_lang$core$Native_Date.dayOfWeek;
+var _elm_lang$core$Date$day = _elm_lang$core$Native_Date.day;
+var _elm_lang$core$Date$month = _elm_lang$core$Native_Date.month;
+var _elm_lang$core$Date$year = _elm_lang$core$Native_Date.year;
+var _elm_lang$core$Date$fromTime = _elm_lang$core$Native_Date.fromTime;
+var _elm_lang$core$Date$toTime = _elm_lang$core$Native_Date.toTime;
+var _elm_lang$core$Date$fromString = _elm_lang$core$Native_Date.fromString;
+var _elm_lang$core$Date$now = A2(_elm_lang$core$Task$map, _elm_lang$core$Date$fromTime, _elm_lang$core$Time$now);
+var _elm_lang$core$Date$Date = {ctor: 'Date'};
+var _elm_lang$core$Date$Sun = {ctor: 'Sun'};
+var _elm_lang$core$Date$Sat = {ctor: 'Sat'};
+var _elm_lang$core$Date$Fri = {ctor: 'Fri'};
+var _elm_lang$core$Date$Thu = {ctor: 'Thu'};
+var _elm_lang$core$Date$Wed = {ctor: 'Wed'};
+var _elm_lang$core$Date$Tue = {ctor: 'Tue'};
+var _elm_lang$core$Date$Mon = {ctor: 'Mon'};
+var _elm_lang$core$Date$Dec = {ctor: 'Dec'};
+var _elm_lang$core$Date$Nov = {ctor: 'Nov'};
+var _elm_lang$core$Date$Oct = {ctor: 'Oct'};
+var _elm_lang$core$Date$Sep = {ctor: 'Sep'};
+var _elm_lang$core$Date$Aug = {ctor: 'Aug'};
+var _elm_lang$core$Date$Jul = {ctor: 'Jul'};
+var _elm_lang$core$Date$Jun = {ctor: 'Jun'};
+var _elm_lang$core$Date$May = {ctor: 'May'};
+var _elm_lang$core$Date$Apr = {ctor: 'Apr'};
+var _elm_lang$core$Date$Mar = {ctor: 'Mar'};
+var _elm_lang$core$Date$Feb = {ctor: 'Feb'};
+var _elm_lang$core$Date$Jan = {ctor: 'Jan'};
 
 //import Maybe, Native.Array, Native.List, Native.Utils, Result //
 
@@ -7507,6 +7573,143 @@ var _elm_lang$core$Json_Decode$int = _elm_lang$core$Native_Json.decodePrimitive(
 var _elm_lang$core$Json_Decode$bool = _elm_lang$core$Native_Json.decodePrimitive('bool');
 var _elm_lang$core$Json_Decode$string = _elm_lang$core$Native_Json.decodePrimitive('string');
 var _elm_lang$core$Json_Decode$Decoder = {ctor: 'Decoder'};
+
+//import Maybe, Native.List //
+
+var _elm_lang$core$Native_Regex = function() {
+
+function escape(str)
+{
+	return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+function caseInsensitive(re)
+{
+	return new RegExp(re.source, 'gi');
+}
+function regex(raw)
+{
+	return new RegExp(raw, 'g');
+}
+
+function contains(re, string)
+{
+	return string.match(re) !== null;
+}
+
+function find(n, re, str)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	var out = [];
+	var number = 0;
+	var string = str;
+	var lastIndex = re.lastIndex;
+	var prevLastIndex = -1;
+	var result;
+	while (number++ < n && (result = re.exec(string)))
+	{
+		if (prevLastIndex === re.lastIndex) break;
+		var i = result.length - 1;
+		var subs = new Array(i);
+		while (i > 0)
+		{
+			var submatch = result[i];
+			subs[--i] = submatch === undefined
+				? _elm_lang$core$Maybe$Nothing
+				: _elm_lang$core$Maybe$Just(submatch);
+		}
+		out.push({
+			match: result[0],
+			submatches: _elm_lang$core$Native_List.fromArray(subs),
+			index: result.index,
+			number: number
+		});
+		prevLastIndex = re.lastIndex;
+	}
+	re.lastIndex = lastIndex;
+	return _elm_lang$core$Native_List.fromArray(out);
+}
+
+function replace(n, re, replacer, string)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	var count = 0;
+	function jsReplacer(match)
+	{
+		if (count++ >= n)
+		{
+			return match;
+		}
+		var i = arguments.length - 3;
+		var submatches = new Array(i);
+		while (i > 0)
+		{
+			var submatch = arguments[i];
+			submatches[--i] = submatch === undefined
+				? _elm_lang$core$Maybe$Nothing
+				: _elm_lang$core$Maybe$Just(submatch);
+		}
+		return replacer({
+			match: match,
+			submatches: _elm_lang$core$Native_List.fromArray(submatches),
+			index: arguments[arguments.length - 2],
+			number: count
+		});
+	}
+	return string.replace(re, jsReplacer);
+}
+
+function split(n, re, str)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	if (n === Infinity)
+	{
+		return _elm_lang$core$Native_List.fromArray(str.split(re));
+	}
+	var string = str;
+	var result;
+	var out = [];
+	var start = re.lastIndex;
+	var restoreLastIndex = re.lastIndex;
+	while (n--)
+	{
+		if (!(result = re.exec(string))) break;
+		out.push(string.slice(start, result.index));
+		start = re.lastIndex;
+	}
+	out.push(string.slice(start));
+	re.lastIndex = restoreLastIndex;
+	return _elm_lang$core$Native_List.fromArray(out);
+}
+
+return {
+	regex: regex,
+	caseInsensitive: caseInsensitive,
+	escape: escape,
+
+	contains: F2(contains),
+	find: F3(find),
+	replace: F4(replace),
+	split: F3(split)
+};
+
+}();
+
+var _elm_lang$core$Regex$split = _elm_lang$core$Native_Regex.split;
+var _elm_lang$core$Regex$replace = _elm_lang$core$Native_Regex.replace;
+var _elm_lang$core$Regex$find = _elm_lang$core$Native_Regex.find;
+var _elm_lang$core$Regex$contains = _elm_lang$core$Native_Regex.contains;
+var _elm_lang$core$Regex$caseInsensitive = _elm_lang$core$Native_Regex.caseInsensitive;
+var _elm_lang$core$Regex$regex = _elm_lang$core$Native_Regex.regex;
+var _elm_lang$core$Regex$escape = _elm_lang$core$Native_Regex.escape;
+var _elm_lang$core$Regex$Match = F4(
+	function (a, b, c, d) {
+		return {match: a, submatches: b, index: c, number: d};
+	});
+var _elm_lang$core$Regex$Regex = {ctor: 'Regex'};
+var _elm_lang$core$Regex$AtMost = function (a) {
+	return {ctor: 'AtMost', _0: a};
+};
+var _elm_lang$core$Regex$All = {ctor: 'All'};
 
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrap;
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrapWithFlags;
@@ -13970,38 +14173,1075 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
+var _rluiten$elm_date_extra$Date_Extra_Internal2$prevMonth = function (month) {
+	var _p0 = month;
+	switch (_p0.ctor) {
+		case 'Jan':
+			return _elm_lang$core$Date$Dec;
+		case 'Feb':
+			return _elm_lang$core$Date$Jan;
+		case 'Mar':
+			return _elm_lang$core$Date$Feb;
+		case 'Apr':
+			return _elm_lang$core$Date$Mar;
+		case 'May':
+			return _elm_lang$core$Date$Apr;
+		case 'Jun':
+			return _elm_lang$core$Date$May;
+		case 'Jul':
+			return _elm_lang$core$Date$Jun;
+		case 'Aug':
+			return _elm_lang$core$Date$Jul;
+		case 'Sep':
+			return _elm_lang$core$Date$Aug;
+		case 'Oct':
+			return _elm_lang$core$Date$Sep;
+		case 'Nov':
+			return _elm_lang$core$Date$Oct;
+		default:
+			return _elm_lang$core$Date$Nov;
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$nextMonth = function (month) {
+	var _p1 = month;
+	switch (_p1.ctor) {
+		case 'Jan':
+			return _elm_lang$core$Date$Feb;
+		case 'Feb':
+			return _elm_lang$core$Date$Mar;
+		case 'Mar':
+			return _elm_lang$core$Date$Apr;
+		case 'Apr':
+			return _elm_lang$core$Date$May;
+		case 'May':
+			return _elm_lang$core$Date$Jun;
+		case 'Jun':
+			return _elm_lang$core$Date$Jul;
+		case 'Jul':
+			return _elm_lang$core$Date$Aug;
+		case 'Aug':
+			return _elm_lang$core$Date$Sep;
+		case 'Sep':
+			return _elm_lang$core$Date$Oct;
+		case 'Oct':
+			return _elm_lang$core$Date$Nov;
+		case 'Nov':
+			return _elm_lang$core$Date$Dec;
+		default:
+			return _elm_lang$core$Date$Jan;
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$intToMonth = function (month) {
+	return (_elm_lang$core$Native_Utils.cmp(month, 1) < 1) ? _elm_lang$core$Date$Jan : (_elm_lang$core$Native_Utils.eq(month, 2) ? _elm_lang$core$Date$Feb : (_elm_lang$core$Native_Utils.eq(month, 3) ? _elm_lang$core$Date$Mar : (_elm_lang$core$Native_Utils.eq(month, 4) ? _elm_lang$core$Date$Apr : (_elm_lang$core$Native_Utils.eq(month, 5) ? _elm_lang$core$Date$May : (_elm_lang$core$Native_Utils.eq(month, 6) ? _elm_lang$core$Date$Jun : (_elm_lang$core$Native_Utils.eq(month, 7) ? _elm_lang$core$Date$Jul : (_elm_lang$core$Native_Utils.eq(month, 8) ? _elm_lang$core$Date$Aug : (_elm_lang$core$Native_Utils.eq(month, 9) ? _elm_lang$core$Date$Sep : (_elm_lang$core$Native_Utils.eq(month, 10) ? _elm_lang$core$Date$Oct : (_elm_lang$core$Native_Utils.eq(month, 11) ? _elm_lang$core$Date$Nov : _elm_lang$core$Date$Dec))))))))));
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$monthToInt = function (month) {
+	var _p2 = month;
+	switch (_p2.ctor) {
+		case 'Jan':
+			return 1;
+		case 'Feb':
+			return 2;
+		case 'Mar':
+			return 3;
+		case 'Apr':
+			return 4;
+		case 'May':
+			return 5;
+		case 'Jun':
+			return 6;
+		case 'Jul':
+			return 7;
+		case 'Aug':
+			return 8;
+		case 'Sep':
+			return 9;
+		case 'Oct':
+			return 10;
+		case 'Nov':
+			return 11;
+		default:
+			return 12;
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$isLeapYear = function (year) {
+	return (_elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$Basics_ops['%'], year, 4),
+		0) && (!_elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$Basics_ops['%'], year, 100),
+		0))) || _elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$Basics_ops['%'], year, 400),
+		0);
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$isLeapYearDate = function (date) {
+	return _rluiten$elm_date_extra$Date_Extra_Internal2$isLeapYear(
+		_elm_lang$core$Date$year(date));
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$yearToDayLength = function (year) {
+	return _rluiten$elm_date_extra$Date_Extra_Internal2$isLeapYear(year) ? 366 : 365;
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$daysInMonth = F2(
+	function (year, month) {
+		var _p3 = month;
+		switch (_p3.ctor) {
+			case 'Jan':
+				return 31;
+			case 'Feb':
+				return _rluiten$elm_date_extra$Date_Extra_Internal2$isLeapYear(year) ? 29 : 28;
+			case 'Mar':
+				return 31;
+			case 'Apr':
+				return 30;
+			case 'May':
+				return 31;
+			case 'Jun':
+				return 30;
+			case 'Jul':
+				return 31;
+			case 'Aug':
+				return 31;
+			case 'Sep':
+				return 30;
+			case 'Oct':
+				return 31;
+			case 'Nov':
+				return 30;
+			default:
+				return 31;
+		}
+	});
+var _rluiten$elm_date_extra$Date_Extra_Internal2$daysInMonthDate = function (date) {
+	return A2(
+		_rluiten$elm_date_extra$Date_Extra_Internal2$daysInMonth,
+		_elm_lang$core$Date$year(date),
+		_elm_lang$core$Date$month(date));
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$monthList = {
+	ctor: '::',
+	_0: _elm_lang$core$Date$Jan,
+	_1: {
+		ctor: '::',
+		_0: _elm_lang$core$Date$Feb,
+		_1: {
+			ctor: '::',
+			_0: _elm_lang$core$Date$Mar,
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$core$Date$Apr,
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$core$Date$May,
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$core$Date$Jun,
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$core$Date$Jul,
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$core$Date$Aug,
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$core$Date$Sep,
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$core$Date$Oct,
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$core$Date$Nov,
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$core$Date$Dec,
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$toTime = function (_p4) {
+	return _elm_lang$core$Basics$floor(
+		_elm_lang$core$Date$toTime(_p4));
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$fromTime = function (_p5) {
+	return _elm_lang$core$Date$fromTime(
+		_elm_lang$core$Basics$toFloat(_p5));
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$prevDay = function (day) {
+	var _p6 = day;
+	switch (_p6.ctor) {
+		case 'Mon':
+			return _elm_lang$core$Date$Sun;
+		case 'Tue':
+			return _elm_lang$core$Date$Mon;
+		case 'Wed':
+			return _elm_lang$core$Date$Tue;
+		case 'Thu':
+			return _elm_lang$core$Date$Wed;
+		case 'Fri':
+			return _elm_lang$core$Date$Thu;
+		case 'Sat':
+			return _elm_lang$core$Date$Fri;
+		default:
+			return _elm_lang$core$Date$Sat;
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$nextDay = function (day) {
+	var _p7 = day;
+	switch (_p7.ctor) {
+		case 'Mon':
+			return _elm_lang$core$Date$Tue;
+		case 'Tue':
+			return _elm_lang$core$Date$Wed;
+		case 'Wed':
+			return _elm_lang$core$Date$Thu;
+		case 'Thu':
+			return _elm_lang$core$Date$Fri;
+		case 'Fri':
+			return _elm_lang$core$Date$Sat;
+		case 'Sat':
+			return _elm_lang$core$Date$Sun;
+		default:
+			return _elm_lang$core$Date$Mon;
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$isoDayOfWeek = function (day) {
+	var _p8 = day;
+	switch (_p8.ctor) {
+		case 'Mon':
+			return 1;
+		case 'Tue':
+			return 2;
+		case 'Wed':
+			return 3;
+		case 'Thu':
+			return 4;
+		case 'Fri':
+			return 5;
+		case 'Sat':
+			return 6;
+		default:
+			return 7;
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMillisecond = _elm_lang$core$Basics$floor(_elm_lang$core$Time$millisecond);
+var _rluiten$elm_date_extra$Date_Extra_Internal2$ticksASecond = _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMillisecond * 1000;
+var _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMinute = _rluiten$elm_date_extra$Date_Extra_Internal2$ticksASecond * 60;
+var _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAnHour = _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMinute * 60;
+var _rluiten$elm_date_extra$Date_Extra_Internal2$ticksADay = _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAnHour * 24;
+var _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAWeek = _rluiten$elm_date_extra$Date_Extra_Internal2$ticksADay * 7;
+var _rluiten$elm_date_extra$Date_Extra_Internal2$lastOfMonthTicks = function (date) {
+	var dateTicks = _rluiten$elm_date_extra$Date_Extra_Internal2$toTime(date);
+	var day = _elm_lang$core$Date$day(date);
+	var month = _elm_lang$core$Date$month(date);
+	var year = _elm_lang$core$Date$year(date);
+	var daysInMonthVal = A2(_rluiten$elm_date_extra$Date_Extra_Internal2$daysInMonth, year, month);
+	var addDays = daysInMonthVal - day;
+	return dateTicks + (addDays * _rluiten$elm_date_extra$Date_Extra_Internal2$ticksADay);
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$firstOfNextMonthDate = function (date) {
+	return _rluiten$elm_date_extra$Date_Extra_Internal2$fromTime(
+		_rluiten$elm_date_extra$Date_Extra_Internal2$lastOfMonthTicks(date) + _rluiten$elm_date_extra$Date_Extra_Internal2$ticksADay);
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$daysInNextMonth = function (date) {
+	return _rluiten$elm_date_extra$Date_Extra_Internal2$daysInMonthDate(
+		_rluiten$elm_date_extra$Date_Extra_Internal2$firstOfNextMonthDate(date));
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$firstOfMonthTicks = function (date) {
+	var dateTicks = _rluiten$elm_date_extra$Date_Extra_Internal2$toTime(date);
+	var day = _elm_lang$core$Date$day(date);
+	return dateTicks + ((1 - day) * _rluiten$elm_date_extra$Date_Extra_Internal2$ticksADay);
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$lastOfPrevMonthDate = function (date) {
+	return _rluiten$elm_date_extra$Date_Extra_Internal2$fromTime(
+		_rluiten$elm_date_extra$Date_Extra_Internal2$firstOfMonthTicks(date) - _rluiten$elm_date_extra$Date_Extra_Internal2$ticksADay);
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$daysInPrevMonth = function (date) {
+	return _rluiten$elm_date_extra$Date_Extra_Internal2$daysInMonthDate(
+		_rluiten$elm_date_extra$Date_Extra_Internal2$lastOfPrevMonthDate(date));
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal2$epochDateStr = '1970-01-01T00:00:00Z';
+
+var _rluiten$elm_date_extra$Date_Extra_Period$diff = F2(
+	function (date1, date2) {
+		var millisecondDiff = _elm_lang$core$Date$millisecond(date1) - _elm_lang$core$Date$millisecond(date2);
+		var secondDiff = _elm_lang$core$Date$second(date1) - _elm_lang$core$Date$second(date2);
+		var minuteDiff = _elm_lang$core$Date$minute(date1) - _elm_lang$core$Date$minute(date2);
+		var hourDiff = _elm_lang$core$Date$hour(date1) - _elm_lang$core$Date$hour(date2);
+		var ticksDiff = _rluiten$elm_date_extra$Date_Extra_Internal2$toTime(date1) - _rluiten$elm_date_extra$Date_Extra_Internal2$toTime(date2);
+		var ticksDayDiff = (((ticksDiff - (hourDiff * _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAnHour)) - (minuteDiff * _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMinute)) - (secondDiff * _rluiten$elm_date_extra$Date_Extra_Internal2$ticksASecond)) - (millisecondDiff * _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMillisecond);
+		var onlyDaysDiff = (ticksDayDiff / _rluiten$elm_date_extra$Date_Extra_Internal2$ticksADay) | 0;
+		var _p0 = function () {
+			if (_elm_lang$core$Native_Utils.cmp(onlyDaysDiff, 0) < 0) {
+				var absDayDiff = _elm_lang$core$Basics$abs(onlyDaysDiff);
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Basics$negate((absDayDiff / 7) | 0),
+					_1: _elm_lang$core$Basics$negate(
+						A2(_elm_lang$core$Basics_ops['%'], absDayDiff, 7))
+				};
+			} else {
+				return {
+					ctor: '_Tuple2',
+					_0: (onlyDaysDiff / 7) | 0,
+					_1: A2(_elm_lang$core$Basics_ops['%'], onlyDaysDiff, 7)
+				};
+			}
+		}();
+		var weekDiff = _p0._0;
+		var dayDiff = _p0._1;
+		return {week: weekDiff, day: dayDiff, hour: hourDiff, minute: minuteDiff, second: secondDiff, millisecond: millisecondDiff};
+	});
+var _rluiten$elm_date_extra$Date_Extra_Period$addTimeUnit = F3(
+	function (unit, addend, date) {
+		return _rluiten$elm_date_extra$Date_Extra_Internal2$fromTime(
+			A2(
+				F2(
+					function (x, y) {
+						return x + y;
+					}),
+				addend * unit,
+				_rluiten$elm_date_extra$Date_Extra_Internal2$toTime(date)));
+	});
+var _rluiten$elm_date_extra$Date_Extra_Period$toTicks = function (period) {
+	var _p1 = period;
+	switch (_p1.ctor) {
+		case 'Millisecond':
+			return _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMillisecond;
+		case 'Second':
+			return _rluiten$elm_date_extra$Date_Extra_Internal2$ticksASecond;
+		case 'Minute':
+			return _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMinute;
+		case 'Hour':
+			return _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAnHour;
+		case 'Day':
+			return _rluiten$elm_date_extra$Date_Extra_Internal2$ticksADay;
+		case 'Week':
+			return _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAWeek;
+		default:
+			var _p2 = _p1._0;
+			return (((((_rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMillisecond * _p2.millisecond) + (_rluiten$elm_date_extra$Date_Extra_Internal2$ticksASecond * _p2.second)) + (_rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMinute * _p2.minute)) + (_rluiten$elm_date_extra$Date_Extra_Internal2$ticksAnHour * _p2.hour)) + (_rluiten$elm_date_extra$Date_Extra_Internal2$ticksADay * _p2.day)) + (_rluiten$elm_date_extra$Date_Extra_Internal2$ticksAWeek * _p2.week);
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_Period$add = function (period) {
+	return _rluiten$elm_date_extra$Date_Extra_Period$addTimeUnit(
+		_rluiten$elm_date_extra$Date_Extra_Period$toTicks(period));
+};
+var _rluiten$elm_date_extra$Date_Extra_Period$zeroDelta = {week: 0, day: 0, hour: 0, minute: 0, second: 0, millisecond: 0};
+var _rluiten$elm_date_extra$Date_Extra_Period$DeltaRecord = F6(
+	function (a, b, c, d, e, f) {
+		return {week: a, day: b, hour: c, minute: d, second: e, millisecond: f};
+	});
+var _rluiten$elm_date_extra$Date_Extra_Period$Delta = function (a) {
+	return {ctor: 'Delta', _0: a};
+};
+var _rluiten$elm_date_extra$Date_Extra_Period$Week = {ctor: 'Week'};
+var _rluiten$elm_date_extra$Date_Extra_Period$Day = {ctor: 'Day'};
+var _rluiten$elm_date_extra$Date_Extra_Period$Hour = {ctor: 'Hour'};
+var _rluiten$elm_date_extra$Date_Extra_Period$Minute = {ctor: 'Minute'};
+var _rluiten$elm_date_extra$Date_Extra_Period$Second = {ctor: 'Second'};
+var _rluiten$elm_date_extra$Date_Extra_Period$Millisecond = {ctor: 'Millisecond'};
+
+var _rluiten$elm_date_extra$Date_Extra_Internal$daysFromCivil = F3(
+	function (year, month, day) {
+		var doy = (((((153 * (month + ((_elm_lang$core$Native_Utils.cmp(month, 2) > 0) ? -3 : 9))) + 2) / 5) | 0) + day) - 1;
+		var y = year - ((_elm_lang$core$Native_Utils.cmp(month, 2) < 1) ? 1 : 0);
+		var era = (((_elm_lang$core$Native_Utils.cmp(y, 0) > -1) ? y : (y - 399)) / 400) | 0;
+		var yoe = y - (era * 400);
+		var doe = (((yoe * 365) + ((yoe / 4) | 0)) - ((yoe / 100) | 0)) + doy;
+		return ((era * 146097) + doe) - 719468;
+	});
+var _rluiten$elm_date_extra$Date_Extra_Internal$ticksFromFields = F7(
+	function (year, month, day, hour, minute, second, millisecond) {
+		var monthInt = _rluiten$elm_date_extra$Date_Extra_Internal2$monthToInt(month);
+		var clampYear = (_elm_lang$core$Native_Utils.cmp(year, 0) < 0) ? 0 : year;
+		var clampDay = A3(
+			_elm_lang$core$Basics$clamp,
+			1,
+			A2(_rluiten$elm_date_extra$Date_Extra_Internal2$daysInMonth, clampYear, month),
+			day);
+		var dayCount = A3(_rluiten$elm_date_extra$Date_Extra_Internal$daysFromCivil, clampYear, monthInt, clampDay);
+		return _rluiten$elm_date_extra$Date_Extra_Period$toTicks(
+			_rluiten$elm_date_extra$Date_Extra_Period$Delta(
+				{
+					millisecond: A3(_elm_lang$core$Basics$clamp, 0, 999, millisecond),
+					second: A3(_elm_lang$core$Basics$clamp, 0, 59, second),
+					minute: A3(_elm_lang$core$Basics$clamp, 0, 59, minute),
+					hour: A3(_elm_lang$core$Basics$clamp, 0, 23, hour),
+					day: dayCount,
+					week: 0
+				}));
+	});
+var _rluiten$elm_date_extra$Date_Extra_Internal$ticksFromDateFields = function (date) {
+	return A7(
+		_rluiten$elm_date_extra$Date_Extra_Internal$ticksFromFields,
+		_elm_lang$core$Date$year(date),
+		_elm_lang$core$Date$month(date),
+		_elm_lang$core$Date$day(date),
+		_elm_lang$core$Date$hour(date),
+		_elm_lang$core$Date$minute(date),
+		_elm_lang$core$Date$second(date),
+		_elm_lang$core$Date$millisecond(date));
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal$getTimezoneOffset = function (date) {
+	var v1Ticks = _rluiten$elm_date_extra$Date_Extra_Internal$ticksFromDateFields(date);
+	var dateTicks = _elm_lang$core$Basics$floor(
+		_elm_lang$core$Date$toTime(date));
+	return ((dateTicks - v1Ticks) / _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMinute) | 0;
+};
+var _rluiten$elm_date_extra$Date_Extra_Internal$hackDateAsOffset = F2(
+	function (offsetMinutes, date) {
+		return _rluiten$elm_date_extra$Date_Extra_Internal2$fromTime(
+			A2(
+				F2(
+					function (x, y) {
+						return x + y;
+					}),
+				offsetMinutes * _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMinute,
+				_rluiten$elm_date_extra$Date_Extra_Internal2$toTime(date)));
+	});
+var _rluiten$elm_date_extra$Date_Extra_Internal$hackDateAsUtc = function (date) {
+	var offset = _rluiten$elm_date_extra$Date_Extra_Internal$getTimezoneOffset(date);
+	var oHours = (offset / _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAnHour) | 0;
+	var oMinutes = ((offset - (oHours * _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAnHour)) / _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMinute) | 0;
+	return A2(_rluiten$elm_date_extra$Date_Extra_Internal$hackDateAsOffset, offset, date);
+};
+
+var _rluiten$elm_date_extra$Date_Extra_Core$compensateZoneOffset = F2(
+	function (date1, date2) {
+		return A3(
+			_rluiten$elm_date_extra$Date_Extra_Period$add,
+			_rluiten$elm_date_extra$Date_Extra_Period$Minute,
+			_rluiten$elm_date_extra$Date_Extra_Internal$getTimezoneOffset(date2) - _rluiten$elm_date_extra$Date_Extra_Internal$getTimezoneOffset(date1),
+			date2);
+	});
+var _rluiten$elm_date_extra$Date_Extra_Core$lastOfMonthDate = function (date) {
+	return A2(
+		_rluiten$elm_date_extra$Date_Extra_Core$compensateZoneOffset,
+		date,
+		_rluiten$elm_date_extra$Date_Extra_Internal2$fromTime(
+			_rluiten$elm_date_extra$Date_Extra_Internal2$lastOfMonthTicks(date)));
+};
+var _rluiten$elm_date_extra$Date_Extra_Core$toFirstOfMonth = function (date) {
+	return A2(
+		_rluiten$elm_date_extra$Date_Extra_Core$compensateZoneOffset,
+		date,
+		_rluiten$elm_date_extra$Date_Extra_Internal2$fromTime(
+			_rluiten$elm_date_extra$Date_Extra_Internal2$firstOfMonthTicks(date)));
+};
+var _rluiten$elm_date_extra$Date_Extra_Core$lastOfPrevMonthDate = function (date) {
+	return A2(
+		_rluiten$elm_date_extra$Date_Extra_Core$compensateZoneOffset,
+		date,
+		_rluiten$elm_date_extra$Date_Extra_Internal2$lastOfPrevMonthDate(date));
+};
+var _rluiten$elm_date_extra$Date_Extra_Core$firstOfNextMonthDate = function (date) {
+	return A2(
+		_rluiten$elm_date_extra$Date_Extra_Core$compensateZoneOffset,
+		date,
+		_rluiten$elm_date_extra$Date_Extra_Internal2$firstOfNextMonthDate(date));
+};
+var _rluiten$elm_date_extra$Date_Extra_Core$yearToDayLength = _rluiten$elm_date_extra$Date_Extra_Internal2$yearToDayLength;
+var _rluiten$elm_date_extra$Date_Extra_Core$toTime = _rluiten$elm_date_extra$Date_Extra_Internal2$toTime;
+var _rluiten$elm_date_extra$Date_Extra_Core$ticksAWeek = _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAWeek;
+var _rluiten$elm_date_extra$Date_Extra_Core$ticksASecond = _rluiten$elm_date_extra$Date_Extra_Internal2$ticksASecond;
+var _rluiten$elm_date_extra$Date_Extra_Core$ticksAMinute = _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMinute;
+var _rluiten$elm_date_extra$Date_Extra_Core$ticksAMillisecond = _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAMillisecond;
+var _rluiten$elm_date_extra$Date_Extra_Core$ticksADay = _rluiten$elm_date_extra$Date_Extra_Internal2$ticksADay;
+var _rluiten$elm_date_extra$Date_Extra_Core$ticksAnHour = _rluiten$elm_date_extra$Date_Extra_Internal2$ticksAnHour;
+var _rluiten$elm_date_extra$Date_Extra_Core$prevMonth = _rluiten$elm_date_extra$Date_Extra_Internal2$prevMonth;
+var _rluiten$elm_date_extra$Date_Extra_Core$prevDay = _rluiten$elm_date_extra$Date_Extra_Internal2$prevDay;
+var _rluiten$elm_date_extra$Date_Extra_Core$nextMonth = _rluiten$elm_date_extra$Date_Extra_Internal2$nextMonth;
+var _rluiten$elm_date_extra$Date_Extra_Core$nextDay = _rluiten$elm_date_extra$Date_Extra_Internal2$nextDay;
+var _rluiten$elm_date_extra$Date_Extra_Core$monthToInt = _rluiten$elm_date_extra$Date_Extra_Internal2$monthToInt;
+var _rluiten$elm_date_extra$Date_Extra_Core$monthList = _rluiten$elm_date_extra$Date_Extra_Internal2$monthList;
+var _rluiten$elm_date_extra$Date_Extra_Core$isoDayOfWeek = _rluiten$elm_date_extra$Date_Extra_Internal2$isoDayOfWeek;
+var _rluiten$elm_date_extra$Date_Extra_Core$daysBackToStartOfWeek = F2(
+	function (dateDay, startOfWeekDay) {
+		var startOfWeekDayIndex = _rluiten$elm_date_extra$Date_Extra_Core$isoDayOfWeek(startOfWeekDay);
+		var dateDayIndex = _rluiten$elm_date_extra$Date_Extra_Core$isoDayOfWeek(dateDay);
+		return (_elm_lang$core$Native_Utils.cmp(dateDayIndex, startOfWeekDayIndex) < 0) ? ((7 + dateDayIndex) - startOfWeekDayIndex) : (dateDayIndex - startOfWeekDayIndex);
+	});
+var _rluiten$elm_date_extra$Date_Extra_Core$isLeapYearDate = _rluiten$elm_date_extra$Date_Extra_Internal2$isLeapYearDate;
+var _rluiten$elm_date_extra$Date_Extra_Core$isLeapYear = _rluiten$elm_date_extra$Date_Extra_Internal2$isLeapYear;
+var _rluiten$elm_date_extra$Date_Extra_Core$intToMonth = _rluiten$elm_date_extra$Date_Extra_Internal2$intToMonth;
+var _rluiten$elm_date_extra$Date_Extra_Core$fromTime = _rluiten$elm_date_extra$Date_Extra_Internal2$fromTime;
+var _rluiten$elm_date_extra$Date_Extra_Core$epochDateStr = _rluiten$elm_date_extra$Date_Extra_Internal2$epochDateStr;
+var _rluiten$elm_date_extra$Date_Extra_Core$daysInMonthDate = _rluiten$elm_date_extra$Date_Extra_Internal2$daysInMonthDate;
+var _rluiten$elm_date_extra$Date_Extra_Core$daysInPrevMonth = _rluiten$elm_date_extra$Date_Extra_Internal2$daysInPrevMonth;
+var _rluiten$elm_date_extra$Date_Extra_Core$daysInNextMonth = _rluiten$elm_date_extra$Date_Extra_Internal2$daysInNextMonth;
+var _rluiten$elm_date_extra$Date_Extra_Core$daysInMonth = _rluiten$elm_date_extra$Date_Extra_Internal2$daysInMonth;
+
+var _rluiten$elm_date_extra$Date_Extra_TwelveHourClock$PM = {ctor: 'PM'};
+var _rluiten$elm_date_extra$Date_Extra_TwelveHourClock$AM = {ctor: 'AM'};
+var _rluiten$elm_date_extra$Date_Extra_TwelveHourClock$twelveHourPeriod = function (d) {
+	return (_elm_lang$core$Native_Utils.cmp(
+		_elm_lang$core$Date$hour(d),
+		12) < 0) ? _rluiten$elm_date_extra$Date_Extra_TwelveHourClock$AM : _rluiten$elm_date_extra$Date_Extra_TwelveHourClock$PM;
+};
+
+var _rluiten$elm_date_extra$Date_Extra_Config$Config = F2(
+	function (a, b) {
+		return {i18n: a, format: b};
+	});
+
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_default$twelveHourPeriod = function (period) {
+	var _p0 = period;
+	if (_p0.ctor === 'AM') {
+		return 'AM';
+	} else {
+		return 'PM';
+	}
+};
+
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$dayOfMonthWithSuffix = F2(
+	function (pad, day) {
+		var value = function () {
+			var _p0 = day;
+			switch (_p0) {
+				case 1:
+					return '1st';
+				case 21:
+					return '21st';
+				case 2:
+					return '2nd';
+				case 22:
+					return '22nd';
+				case 3:
+					return '3rd';
+				case 23:
+					return '23rd';
+				case 31:
+					return '31st';
+				default:
+					return A2(
+						_elm_lang$core$Basics_ops['++'],
+						_elm_lang$core$Basics$toString(day),
+						'th');
+			}
+		}();
+		return pad ? A3(
+			_elm_lang$core$String$padLeft,
+			4,
+			_elm_lang$core$Native_Utils.chr(' '),
+			value) : value;
+	});
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$monthName = function (month) {
+	var _p1 = month;
+	switch (_p1.ctor) {
+		case 'Jan':
+			return 'January';
+		case 'Feb':
+			return 'February';
+		case 'Mar':
+			return 'March';
+		case 'Apr':
+			return 'April';
+		case 'May':
+			return 'May';
+		case 'Jun':
+			return 'June';
+		case 'Jul':
+			return 'July';
+		case 'Aug':
+			return 'August';
+		case 'Sep':
+			return 'September';
+		case 'Oct':
+			return 'October';
+		case 'Nov':
+			return 'November';
+		default:
+			return 'December';
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$monthShort = function (month) {
+	var _p2 = month;
+	switch (_p2.ctor) {
+		case 'Jan':
+			return 'Jan';
+		case 'Feb':
+			return 'Feb';
+		case 'Mar':
+			return 'Mar';
+		case 'Apr':
+			return 'Apr';
+		case 'May':
+			return 'May';
+		case 'Jun':
+			return 'Jun';
+		case 'Jul':
+			return 'Jul';
+		case 'Aug':
+			return 'Aug';
+		case 'Sep':
+			return 'Sep';
+		case 'Oct':
+			return 'Oct';
+		case 'Nov':
+			return 'Nov';
+		default:
+			return 'Dec';
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$dayName = function (day) {
+	var _p3 = day;
+	switch (_p3.ctor) {
+		case 'Mon':
+			return 'Monday';
+		case 'Tue':
+			return 'Tuesday';
+		case 'Wed':
+			return 'Wednesday';
+		case 'Thu':
+			return 'Thursday';
+		case 'Fri':
+			return 'Friday';
+		case 'Sat':
+			return 'Saturday';
+		default:
+			return 'Sunday';
+	}
+};
+var _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$dayShort = function (day) {
+	var _p4 = day;
+	switch (_p4.ctor) {
+		case 'Mon':
+			return 'Mon';
+		case 'Tue':
+			return 'Tue';
+		case 'Wed':
+			return 'Wed';
+		case 'Thu':
+			return 'Thu';
+		case 'Fri':
+			return 'Fri';
+		case 'Sat':
+			return 'Sat';
+		default:
+			return 'Sun';
+	}
+};
+
+var _rluiten$elm_date_extra$Date_Extra_Config_Config_en_gb$config = {
+	i18n: {dayShort: _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$dayShort, dayName: _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$dayName, monthShort: _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$monthShort, monthName: _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$monthName, dayOfMonthWithSuffix: _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$dayOfMonthWithSuffix, twelveHourPeriod: _rluiten$elm_date_extra$Date_Extra_I18n_I_default$twelveHourPeriod},
+	format: {date: '%-d/%m/%Y', longDate: '%A, %-d %B %Y', time: '%-I:%M %p', longTime: '%-I:%M:%S %p', dateTime: '%-d/%m/%Y %-I:%M %p', firstDayOfWeek: _elm_lang$core$Date$Mon}
+};
+
+var _rluiten$elm_date_extra$Date_Extra_Config_Config_en_us$config = {
+	i18n: {dayShort: _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$dayShort, dayName: _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$dayName, monthShort: _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$monthShort, monthName: _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$monthName, dayOfMonthWithSuffix: _rluiten$elm_date_extra$Date_Extra_I18n_I_en_us$dayOfMonthWithSuffix, twelveHourPeriod: _rluiten$elm_date_extra$Date_Extra_I18n_I_default$twelveHourPeriod},
+	format: {date: '%-m/%-d/%Y', longDate: '%A, %B %d, %Y', time: '%-H:%M %p', longTime: '%-H:%M:%S %p', dateTime: '%-m/%-d/%Y %-I:%M %p', firstDayOfWeek: _elm_lang$core$Date$Sun}
+};
+
+var _rluiten$elm_date_extra$Date_Extra_Create$epochDate = _elm_lang$core$Date$fromTime(0);
+var _rluiten$elm_date_extra$Date_Extra_Create$epochTimezoneOffset = function () {
+	var inMinutes = (_elm_lang$core$Date$hour(_rluiten$elm_date_extra$Date_Extra_Create$epochDate) * 60) + _elm_lang$core$Date$minute(_rluiten$elm_date_extra$Date_Extra_Create$epochDate);
+	return _elm_lang$core$Native_Utils.eq(
+		_elm_lang$core$Date$year(_rluiten$elm_date_extra$Date_Extra_Create$epochDate),
+		1969) ? (0 - (inMinutes - (24 * 60))) : (0 - inMinutes);
+}();
+var _rluiten$elm_date_extra$Date_Extra_Create$getTimezoneOffset = _rluiten$elm_date_extra$Date_Extra_Internal$getTimezoneOffset;
+var _rluiten$elm_date_extra$Date_Extra_Create$adjustedTicksToDate = function (ticks) {
+	var date = A3(_rluiten$elm_date_extra$Date_Extra_Period$add, _rluiten$elm_date_extra$Date_Extra_Period$Millisecond, ticks + (_rluiten$elm_date_extra$Date_Extra_Create$epochTimezoneOffset * _rluiten$elm_date_extra$Date_Extra_Core$ticksAMinute), _rluiten$elm_date_extra$Date_Extra_Create$epochDate);
+	var dateOffset = _rluiten$elm_date_extra$Date_Extra_Create$getTimezoneOffset(date);
+	return _elm_lang$core$Native_Utils.eq(dateOffset, _rluiten$elm_date_extra$Date_Extra_Create$epochTimezoneOffset) ? date : A3(_rluiten$elm_date_extra$Date_Extra_Period$add, _rluiten$elm_date_extra$Date_Extra_Period$Minute, dateOffset - _rluiten$elm_date_extra$Date_Extra_Create$epochTimezoneOffset, date);
+};
+var _rluiten$elm_date_extra$Date_Extra_Create$dateFromFields = F7(
+	function (year, month, day, hour, minute, second, millisecond) {
+		return _rluiten$elm_date_extra$Date_Extra_Create$adjustedTicksToDate(
+			A7(_rluiten$elm_date_extra$Date_Extra_Internal$ticksFromFields, year, month, day, hour, minute, second, millisecond));
+	});
+var _rluiten$elm_date_extra$Date_Extra_Create$timeFromFields = A3(_rluiten$elm_date_extra$Date_Extra_Create$dateFromFields, 1970, _elm_lang$core$Date$Jan, 1);
+
+var _rluiten$elm_date_extra$Date_Extra_Format$toHourMin = function (offsetMinutes) {
+	return {
+		ctor: '_Tuple2',
+		_0: (offsetMinutes / 60) | 0,
+		_1: A2(_elm_lang$core$Basics_ops['%'], offsetMinutes, 60)
+	};
+};
+var _rluiten$elm_date_extra$Date_Extra_Format$padWithN = F2(
+	function (n, c) {
+		return function (_p0) {
+			return A3(
+				_elm_lang$core$String$padLeft,
+				n,
+				c,
+				_elm_lang$core$Basics$toString(_p0));
+		};
+	});
+var _rluiten$elm_date_extra$Date_Extra_Format$padWith = function (c) {
+	return function (_p1) {
+		return A3(
+			_elm_lang$core$String$padLeft,
+			2,
+			c,
+			_elm_lang$core$Basics$toString(_p1));
+	};
+};
+var _rluiten$elm_date_extra$Date_Extra_Format$hourMod12 = function (h) {
+	return _elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$Basics_ops['%'], h, 12),
+		0) ? 12 : A2(_elm_lang$core$Basics_ops['%'], h, 12);
+};
+var _rluiten$elm_date_extra$Date_Extra_Format$formatOffsetStr = F2(
+	function (betweenHoursMinutes, offset) {
+		var _p2 = _rluiten$elm_date_extra$Date_Extra_Format$toHourMin(
+			_elm_lang$core$Basics$abs(offset));
+		var hour = _p2._0;
+		var minute = _p2._1;
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			(_elm_lang$core$Native_Utils.cmp(offset, 0) < 1) ? '+' : '-',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+					_elm_lang$core$Native_Utils.chr('0'),
+					hour),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					betweenHoursMinutes,
+					A2(
+						_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+						_elm_lang$core$Native_Utils.chr('0'),
+						minute))));
+	});
+var _rluiten$elm_date_extra$Date_Extra_Format$collapse = function (m) {
+	return A2(_elm_lang$core$Maybe$andThen, _elm_lang$core$Basics$identity, m);
+};
+var _rluiten$elm_date_extra$Date_Extra_Format$formatToken = F4(
+	function (config, offset, d, m) {
+		var symbol = A2(
+			_elm_lang$core$Maybe$withDefault,
+			' ',
+			_rluiten$elm_date_extra$Date_Extra_Format$collapse(
+				_elm_lang$core$List$head(m.submatches)));
+		var _p3 = symbol;
+		switch (_p3) {
+			case 'Y':
+				return A3(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWithN,
+					4,
+					_elm_lang$core$Native_Utils.chr('0'),
+					_elm_lang$core$Date$year(d));
+			case 'y':
+				return A2(
+					_elm_lang$core$String$right,
+					2,
+					A3(
+						_rluiten$elm_date_extra$Date_Extra_Format$padWithN,
+						2,
+						_elm_lang$core$Native_Utils.chr('0'),
+						_elm_lang$core$Date$year(d)));
+			case 'm':
+				return A2(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+					_elm_lang$core$Native_Utils.chr('0'),
+					_rluiten$elm_date_extra$Date_Extra_Core$monthToInt(
+						_elm_lang$core$Date$month(d)));
+			case '_m':
+				return A2(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+					_elm_lang$core$Native_Utils.chr(' '),
+					_rluiten$elm_date_extra$Date_Extra_Core$monthToInt(
+						_elm_lang$core$Date$month(d)));
+			case '-m':
+				return _elm_lang$core$Basics$toString(
+					_rluiten$elm_date_extra$Date_Extra_Core$monthToInt(
+						_elm_lang$core$Date$month(d)));
+			case 'B':
+				return config.i18n.monthName(
+					_elm_lang$core$Date$month(d));
+			case '^B':
+				return _elm_lang$core$String$toUpper(
+					config.i18n.monthName(
+						_elm_lang$core$Date$month(d)));
+			case 'b':
+				return config.i18n.monthShort(
+					_elm_lang$core$Date$month(d));
+			case '^b':
+				return _elm_lang$core$String$toUpper(
+					config.i18n.monthShort(
+						_elm_lang$core$Date$month(d)));
+			case 'd':
+				return A2(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+					_elm_lang$core$Native_Utils.chr('0'),
+					_elm_lang$core$Date$day(d));
+			case '-d':
+				return _elm_lang$core$Basics$toString(
+					_elm_lang$core$Date$day(d));
+			case '-@d':
+				return A2(
+					config.i18n.dayOfMonthWithSuffix,
+					false,
+					_elm_lang$core$Date$day(d));
+			case 'e':
+				return A2(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+					_elm_lang$core$Native_Utils.chr(' '),
+					_elm_lang$core$Date$day(d));
+			case '@e':
+				return A2(
+					config.i18n.dayOfMonthWithSuffix,
+					true,
+					_elm_lang$core$Date$day(d));
+			case 'A':
+				return config.i18n.dayName(
+					_elm_lang$core$Date$dayOfWeek(d));
+			case '^A':
+				return _elm_lang$core$String$toUpper(
+					config.i18n.dayName(
+						_elm_lang$core$Date$dayOfWeek(d)));
+			case 'a':
+				return config.i18n.dayShort(
+					_elm_lang$core$Date$dayOfWeek(d));
+			case '^a':
+				return _elm_lang$core$String$toUpper(
+					config.i18n.dayShort(
+						_elm_lang$core$Date$dayOfWeek(d)));
+			case 'H':
+				return A2(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+					_elm_lang$core$Native_Utils.chr('0'),
+					_elm_lang$core$Date$hour(d));
+			case '-H':
+				return _elm_lang$core$Basics$toString(
+					_elm_lang$core$Date$hour(d));
+			case 'k':
+				return A2(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+					_elm_lang$core$Native_Utils.chr(' '),
+					_elm_lang$core$Date$hour(d));
+			case 'I':
+				return A2(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+					_elm_lang$core$Native_Utils.chr('0'),
+					_rluiten$elm_date_extra$Date_Extra_Format$hourMod12(
+						_elm_lang$core$Date$hour(d)));
+			case '-I':
+				return _elm_lang$core$Basics$toString(
+					_rluiten$elm_date_extra$Date_Extra_Format$hourMod12(
+						_elm_lang$core$Date$hour(d)));
+			case 'l':
+				return A2(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+					_elm_lang$core$Native_Utils.chr(' '),
+					_rluiten$elm_date_extra$Date_Extra_Format$hourMod12(
+						_elm_lang$core$Date$hour(d)));
+			case 'p':
+				return _elm_lang$core$String$toUpper(
+					config.i18n.twelveHourPeriod(
+						_rluiten$elm_date_extra$Date_Extra_TwelveHourClock$twelveHourPeriod(d)));
+			case 'P':
+				return config.i18n.twelveHourPeriod(
+					_rluiten$elm_date_extra$Date_Extra_TwelveHourClock$twelveHourPeriod(d));
+			case 'M':
+				return A2(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+					_elm_lang$core$Native_Utils.chr('0'),
+					_elm_lang$core$Date$minute(d));
+			case 'S':
+				return A2(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWith,
+					_elm_lang$core$Native_Utils.chr('0'),
+					_elm_lang$core$Date$second(d));
+			case 'L':
+				return A3(
+					_rluiten$elm_date_extra$Date_Extra_Format$padWithN,
+					3,
+					_elm_lang$core$Native_Utils.chr('0'),
+					_elm_lang$core$Date$millisecond(d));
+			case '%':
+				return symbol;
+			case 'z':
+				return A2(_rluiten$elm_date_extra$Date_Extra_Format$formatOffsetStr, '', offset);
+			case ':z':
+				return A2(_rluiten$elm_date_extra$Date_Extra_Format$formatOffsetStr, ':', offset);
+			default:
+				return '';
+		}
+	});
+var _rluiten$elm_date_extra$Date_Extra_Format$formatRegex = _elm_lang$core$Regex$regex('%(y|Y|m|_m|-m|B|^B|b|^b|d|-d|-@d|e|@e|A|^A|a|^a|H|-H|k|I|-I|l|p|P|M|S|%|L|z|:z)');
+var _rluiten$elm_date_extra$Date_Extra_Format$formatOffset = F4(
+	function (config, targetOffset, formatStr, date) {
+		var dateOffset = _rluiten$elm_date_extra$Date_Extra_Create$getTimezoneOffset(date);
+		var hackOffset = dateOffset - targetOffset;
+		return A4(
+			_elm_lang$core$Regex$replace,
+			_elm_lang$core$Regex$All,
+			_rluiten$elm_date_extra$Date_Extra_Format$formatRegex,
+			A3(
+				_rluiten$elm_date_extra$Date_Extra_Format$formatToken,
+				config,
+				targetOffset,
+				A2(_rluiten$elm_date_extra$Date_Extra_Internal$hackDateAsOffset, hackOffset, date)),
+			formatStr);
+	});
+var _rluiten$elm_date_extra$Date_Extra_Format$format = F3(
+	function (config, formatStr, date) {
+		return A4(
+			_rluiten$elm_date_extra$Date_Extra_Format$formatOffset,
+			config,
+			_rluiten$elm_date_extra$Date_Extra_Create$getTimezoneOffset(date),
+			formatStr,
+			date);
+	});
+var _rluiten$elm_date_extra$Date_Extra_Format$formatUtc = F3(
+	function (config, formatStr, date) {
+		return A4(_rluiten$elm_date_extra$Date_Extra_Format$formatOffset, config, 0, formatStr, date);
+	});
+var _rluiten$elm_date_extra$Date_Extra_Format$isoDateString = function (date) {
+	var day = _elm_lang$core$Date$day(date);
+	var month = _elm_lang$core$Date$month(date);
+	var year = _elm_lang$core$Date$year(date);
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		A3(
+			_elm_lang$core$String$padLeft,
+			4,
+			_elm_lang$core$Native_Utils.chr('0'),
+			_elm_lang$core$Basics$toString(year)),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'-',
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A3(
+					_elm_lang$core$String$padLeft,
+					2,
+					_elm_lang$core$Native_Utils.chr('0'),
+					_elm_lang$core$Basics$toString(
+						_rluiten$elm_date_extra$Date_Extra_Core$monthToInt(month))),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'-',
+					A3(
+						_elm_lang$core$String$padLeft,
+						2,
+						_elm_lang$core$Native_Utils.chr('0'),
+						_elm_lang$core$Basics$toString(day))))));
+};
+var _rluiten$elm_date_extra$Date_Extra_Format$utcIsoDateString = function (date) {
+	return _rluiten$elm_date_extra$Date_Extra_Format$isoDateString(
+		_rluiten$elm_date_extra$Date_Extra_Internal$hackDateAsUtc(date));
+};
+var _rluiten$elm_date_extra$Date_Extra_Format$yearInt = function (year) {
+	return A3(
+		_elm_lang$core$String$padLeft,
+		4,
+		_elm_lang$core$Native_Utils.chr('0'),
+		_elm_lang$core$Basics$toString(year));
+};
+var _rluiten$elm_date_extra$Date_Extra_Format$year = function (date) {
+	return A3(
+		_elm_lang$core$String$padLeft,
+		4,
+		_elm_lang$core$Native_Utils.chr('0'),
+		_elm_lang$core$Basics$toString(
+			_elm_lang$core$Date$year(date)));
+};
+var _rluiten$elm_date_extra$Date_Extra_Format$monthMonth = function (month) {
+	return A3(
+		_elm_lang$core$String$padLeft,
+		2,
+		_elm_lang$core$Native_Utils.chr('0'),
+		_elm_lang$core$Basics$toString(
+			_rluiten$elm_date_extra$Date_Extra_Core$monthToInt(month)));
+};
+var _rluiten$elm_date_extra$Date_Extra_Format$month = function (date) {
+	return A3(
+		_elm_lang$core$String$padLeft,
+		2,
+		_elm_lang$core$Native_Utils.chr('0'),
+		_elm_lang$core$Basics$toString(
+			_rluiten$elm_date_extra$Date_Extra_Core$monthToInt(
+				_elm_lang$core$Date$month(date))));
+};
+var _rluiten$elm_date_extra$Date_Extra_Format$isoTimeFormat = '%H:%M:%S';
+var _rluiten$elm_date_extra$Date_Extra_Format$isoDateFormat = '%Y-%m-%d';
+var _rluiten$elm_date_extra$Date_Extra_Format$isoMsecOffsetFormat = '%Y-%m-%dT%H:%M:%S.%L%:z';
+var _rluiten$elm_date_extra$Date_Extra_Format$isoString = A2(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_us$config, _rluiten$elm_date_extra$Date_Extra_Format$isoMsecOffsetFormat);
+var _rluiten$elm_date_extra$Date_Extra_Format$isoOffsetFormat = '%Y-%m-%dT%H:%M:%S%z';
+var _rluiten$elm_date_extra$Date_Extra_Format$isoMsecFormat = '%Y-%m-%dT%H:%M:%S.%L';
+var _rluiten$elm_date_extra$Date_Extra_Format$isoStringNoOffset = A2(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_us$config, _rluiten$elm_date_extra$Date_Extra_Format$isoMsecFormat);
+var _rluiten$elm_date_extra$Date_Extra_Format$utcIsoString = function (date) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		A3(_rluiten$elm_date_extra$Date_Extra_Format$formatUtc, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_us$config, _rluiten$elm_date_extra$Date_Extra_Format$isoMsecFormat, date),
+		'Z');
+};
+var _rluiten$elm_date_extra$Date_Extra_Format$isoFormat = '%Y-%m-%dT%H:%M:%S';
+
 var _user$project$Main$onKeyPress = function (handler) {
 	return A2(
 		_elm_lang$html$Html_Events$on,
 		'keydown',
 		A2(_elm_lang$core$Json_Decode$map, handler, _elm_lang$html$Html_Events$keyCode));
 };
+var _user$project$Main$newTime = F2(
+	function (_p0, timeString) {
+		var _p1 = _p0;
+		var _p2 = _p1.date;
+		if (_p2.ctor === 'Just') {
+			return _elm_lang$core$Date$fromString(
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					A3(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_gb$config, '%Y-%m-%d', _p2._0),
+					A2(_elm_lang$core$Basics_ops['++'], ' ', timeString)));
+		} else {
+			return _elm_lang$core$Result$Err('no date set');
+		}
+	});
+var _user$project$Main$newDate = F2(
+	function (_p3, dateString) {
+		var _p4 = _p3;
+		var _p5 = _p4.date;
+		if (_p5.ctor === 'Just') {
+			return _elm_lang$core$Date$fromString(
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					dateString,
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						' ',
+						A3(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_gb$config, '%H:%M', _p5._0))));
+		} else {
+			return _elm_lang$core$Result$Err('no date set');
+		}
+	});
 var _user$project$Main$stationAtIndex = F2(
 	function (stations, maybeInt) {
-		var _p0 = maybeInt;
-		if (_p0.ctor === 'Just') {
-			return A2(_elm_community$list_extra$List_Extra$getAt, _p0._0, stations);
+		var _p6 = maybeInt;
+		if (_p6.ctor === 'Just') {
+			return A2(_elm_community$list_extra$List_Extra$getAt, _p6._0, stations);
 		} else {
 			return _elm_lang$core$Maybe$Nothing;
 		}
 	});
-var _user$project$Main$decrementSuggestionIndex = function (_p1) {
-	var _p2 = _p1;
-	var _p3 = _p2.suggestionIndex;
-	if (_p3.ctor === 'Just') {
-		var _p4 = _p3._0;
-		return _elm_lang$core$Native_Utils.eq(_p4, 0) ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(_p4 - 1);
+var _user$project$Main$decrementSuggestionIndex = function (_p7) {
+	var _p8 = _p7;
+	var _p9 = _p8.suggestionIndex;
+	if (_p9.ctor === 'Just') {
+		var _p10 = _p9._0;
+		return _elm_lang$core$Native_Utils.eq(_p10, 0) ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(_p10 - 1);
 	} else {
 		return _elm_lang$core$Maybe$Nothing;
 	}
 };
-var _user$project$Main$incrementSuggestionIndex = function (_p5) {
-	var _p6 = _p5;
-	var max = _elm_lang$core$List$length(_p6.suggestions);
-	var _p7 = _p6.suggestionIndex;
-	if (_p7.ctor === 'Just') {
-		var _p8 = _p7._0;
-		return _elm_lang$core$Native_Utils.eq(_p8, max - 1) ? _elm_lang$core$Maybe$Just(max - 1) : _elm_lang$core$Maybe$Just(_p8 + 1);
+var _user$project$Main$incrementSuggestionIndex = function (_p11) {
+	var _p12 = _p11;
+	var max = _elm_lang$core$List$length(_p12.suggestions);
+	var _p13 = _p12.suggestionIndex;
+	if (_p13.ctor === 'Just') {
+		var _p14 = _p13._0;
+		return _elm_lang$core$Native_Utils.eq(_p14, max - 1) ? _elm_lang$core$Maybe$Just(max - 1) : _elm_lang$core$Maybe$Just(_p14 + 1);
 	} else {
 		return _elm_lang$core$Maybe$Just(0);
 	}
@@ -14048,15 +15288,16 @@ var _user$project$Main$selectFromStation = F2(
 	});
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p9 = msg;
-		switch (_p9.ctor) {
+		var _p15 = msg;
+		switch (_p15.ctor) {
 			case 'CurrentTimeFetched':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{
-							time: _elm_lang$core$Maybe$Just(_p9._0)
+							date: _elm_lang$core$Maybe$Just(
+								_elm_lang$core$Date$fromTime(_p15._0))
 						}),
 					{ctor: '[]'});
 			case 'DoNothing':
@@ -14075,20 +15316,20 @@ var _user$project$Main$update = F2(
 						}),
 					{ctor: '[]'});
 			case 'FromInputChanged':
-				var _p10 = _p9._0;
-				var suggestions = A2(_user$project$Main$suggestStations, _p10, model.stations);
+				var _p16 = _p15._0;
+				var suggestions = A2(_user$project$Main$suggestStations, _p16, model.stations);
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{suggestions: suggestions, displayFromSuggestions: true, fromValue: _p10}),
+						{suggestions: suggestions, displayFromSuggestions: true, fromValue: _p16}),
 					{ctor: '[]'});
 			case 'HandleFromEnter':
-				var _p11 = A2(_user$project$Main$stationAtIndex, model.suggestions, model.suggestionIndex);
-				if (_p11.ctor === 'Just') {
+				var _p17 = A2(_user$project$Main$stationAtIndex, model.suggestions, model.suggestionIndex);
+				if (_p17.ctor === 'Just') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A2(_user$project$Main$selectFromStation, _p11._0, model),
+						A2(_user$project$Main$selectFromStation, _p17._0, model),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -14118,11 +15359,11 @@ var _user$project$Main$update = F2(
 						}),
 					{ctor: '[]'});
 			case 'HandleToEnter':
-				var _p12 = A2(_user$project$Main$stationAtIndex, model.suggestions, model.suggestionIndex);
-				if (_p12.ctor === 'Just') {
+				var _p18 = A2(_user$project$Main$stationAtIndex, model.suggestions, model.suggestionIndex);
+				if (_p18.ctor === 'Just') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A2(_user$project$Main$selectToStation, _p12._0, model),
+						A2(_user$project$Main$selectToStation, _p18._0, model),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -14148,7 +15389,7 @@ var _user$project$Main$update = F2(
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{
-							suggestionIndex: _elm_lang$core$Maybe$Just(_p9._0)
+							suggestionIndex: _elm_lang$core$Maybe$Just(_p15._0)
 						}),
 					{ctor: '[]'});
 			case 'RemoveHighlight':
@@ -14161,24 +15402,51 @@ var _user$project$Main$update = F2(
 			case 'SelectFromStation':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					A2(_user$project$Main$selectFromStation, _p9._0, model),
+					A2(_user$project$Main$selectFromStation, _p15._0, model),
 					{ctor: '[]'});
 			case 'SelectToStation':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
-					A2(_user$project$Main$selectToStation, _p9._0, model),
+					A2(_user$project$Main$selectToStation, _p15._0, model),
 					{ctor: '[]'});
 			case 'SetDate':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{ctor: '[]'});
+				var _p19 = A2(_user$project$Main$newDate, model, _p15._0);
+				if (_p19.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								date: _elm_lang$core$Maybe$Just(_p19._0)
+							}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{errorMessage: _p19._0}),
+						{ctor: '[]'});
+				}
 			case 'SetTime':
-				var _p13 = A2(_elm_lang$core$Debug$log, 'time', _p9._0);
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{ctor: '[]'});
+				var _p20 = A2(_user$project$Main$newTime, model, _p15._0);
+				if (_p20.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								date: _elm_lang$core$Maybe$Just(_p20._0)
+							}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{errorMessage: _p20._0}),
+						{ctor: '[]'});
+				}
 			case 'ToInputBlur':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -14190,17 +15458,18 @@ var _user$project$Main$update = F2(
 						}),
 					{ctor: '[]'});
 			default:
-				var _p14 = _p9._0;
-				var suggestions = A2(_user$project$Main$suggestStations, _p14, model.stations);
+				var _p21 = _p15._0;
+				var suggestions = A2(_user$project$Main$suggestStations, _p21, model.stations);
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{suggestions: suggestions, displayToSuggestions: true, toValue: _p14}),
+						{suggestions: suggestions, displayToSuggestions: true, toValue: _p21}),
 					{ctor: '[]'});
 		}
 	});
 var _user$project$Main$emptyModel = {
+	date: _elm_lang$core$Maybe$Nothing,
 	displayFromSuggestions: false,
 	displayToSuggestions: false,
 	error: false,
@@ -14210,7 +15479,6 @@ var _user$project$Main$emptyModel = {
 	stations: {ctor: '[]'},
 	suggestions: {ctor: '[]'},
 	suggestionIndex: _elm_lang$core$Maybe$Nothing,
-	time: _elm_lang$core$Maybe$Nothing,
 	toStation: _elm_lang$core$Maybe$Nothing,
 	toValue: ''
 };
@@ -14241,7 +15509,7 @@ var _user$project$Main$Model = function (a) {
 									return function (j) {
 										return function (k) {
 											return function (l) {
-												return {displayFromSuggestions: a, displayToSuggestions: b, error: c, errorMessage: d, fromStation: e, fromValue: f, stations: g, suggestions: h, suggestionIndex: i, time: j, toStation: k, toValue: l};
+												return {date: a, displayFromSuggestions: b, displayToSuggestions: c, error: d, errorMessage: e, fromStation: f, fromValue: g, stations: h, suggestions: i, suggestionIndex: j, toStation: k, toValue: l};
 											};
 										};
 									};
@@ -14280,9 +15548,9 @@ var _user$project$Main$HighlightSuggestion = function (a) {
 var _user$project$Main$suggestion = F4(
 	function (msg, maybeSelected, idx, station) {
 		var selected = function () {
-			var _p15 = maybeSelected;
-			if (_p15.ctor === 'Just') {
-				return _elm_lang$core$Native_Utils.eq(idx, _p15._0);
+			var _p22 = maybeSelected;
+			if (_p22.ctor === 'Just') {
+				return _elm_lang$core$Native_Utils.eq(idx, _p22._0);
 			} else {
 				return false;
 			}
@@ -14348,8 +15616,8 @@ var _user$project$Main$FromInputChanged = function (a) {
 };
 var _user$project$Main$DoNothing = {ctor: 'DoNothing'};
 var _user$project$Main$handleFromKeyPress = function (keyCode) {
-	var _p16 = keyCode;
-	switch (_p16) {
+	var _p23 = keyCode;
+	switch (_p23) {
 		case 13:
 			return _user$project$Main$HandleFromEnter;
 		case 38:
@@ -14361,8 +15629,8 @@ var _user$project$Main$handleFromKeyPress = function (keyCode) {
 	}
 };
 var _user$project$Main$handleToKeyPress = function (keyCode) {
-	var _p17 = keyCode;
-	switch (_p17) {
+	var _p24 = keyCode;
+	switch (_p24) {
 		case 13:
 			return _user$project$Main$HandleToEnter;
 		case 38:
@@ -14374,6 +15642,22 @@ var _user$project$Main$handleToKeyPress = function (keyCode) {
 	}
 };
 var _user$project$Main$view = function (model) {
+	var timeValue = function () {
+		var _p25 = model.date;
+		if (_p25.ctor === 'Nothing') {
+			return '';
+		} else {
+			return A3(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_gb$config, '%H:%M', _p25._0);
+		}
+	}();
+	var dateValue = function () {
+		var _p26 = model.date;
+		if (_p26.ctor === 'Nothing') {
+			return '';
+		} else {
+			return A3(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_gb$config, '%Y-%m-%d', _p26._0);
+		}
+	}();
 	var suggestionsFn = A2(_user$project$Main$suggestionsDropdown, model.suggestions, model.suggestionIndex);
 	return model.error ? _elm_lang$html$Html$text(model.errorMessage) : A2(
 		_elm_lang$html$Html$div,
@@ -14612,7 +15896,7 @@ var _user$project$Main$view = function (model) {
 																			_0: _elm_lang$html$Html_Attributes$type_('date'),
 																			_1: {
 																				ctor: '::',
-																				_0: _elm_lang$html$Html_Attributes$value('2017-07-12'),
+																				_0: _elm_lang$html$Html_Attributes$value(dateValue),
 																				_1: {ctor: '[]'}
 																			}
 																		}
@@ -14662,7 +15946,11 @@ var _user$project$Main$view = function (model) {
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Attributes$type_('time'),
-																				_1: {ctor: '[]'}
+																				_1: {
+																					ctor: '::',
+																					_0: _elm_lang$html$Html_Attributes$value(timeValue),
+																					_1: {ctor: '[]'}
+																				}
 																			}
 																		}
 																	}
@@ -14716,15 +16004,15 @@ var _user$project$Main$view = function (model) {
 var _user$project$Main$CurrentTimeFetched = function (a) {
 	return {ctor: 'CurrentTimeFetched', _0: a};
 };
-var _user$project$Main$init = function (_p18) {
-	var _p19 = _p18;
-	var _p20 = _user$project$Main$decodeStations(_p19.stations);
-	if (_p20.ctor === 'Ok') {
+var _user$project$Main$init = function (_p27) {
+	var _p28 = _p27;
+	var _p29 = _user$project$Main$decodeStations(_p28.stations);
+	if (_p29.ctor === 'Ok') {
 		return A2(
 			_elm_lang$core$Platform_Cmd_ops['!'],
 			_elm_lang$core$Native_Utils.update(
 				_user$project$Main$emptyModel,
-				{stations: _p20._0}),
+				{stations: _p29._0}),
 			{
 				ctor: '::',
 				_0: A2(_elm_lang$core$Task$perform, _user$project$Main$CurrentTimeFetched, _elm_lang$core$Time$now),
@@ -14735,7 +16023,7 @@ var _user$project$Main$init = function (_p18) {
 			_elm_lang$core$Platform_Cmd_ops['!'],
 			_elm_lang$core$Native_Utils.update(
 				_user$project$Main$emptyModel,
-				{errorMessage: _p20._0, error: false}),
+				{errorMessage: _p29._0, error: false}),
 			{ctor: '[]'});
 	}
 };
@@ -14744,7 +16032,7 @@ var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 		init: _user$project$Main$init,
 		view: _user$project$Main$view,
 		update: _user$project$Main$update,
-		subscriptions: function (_p21) {
+		subscriptions: function (_p30) {
 			return _elm_lang$core$Platform_Sub$none;
 		}
 	})(

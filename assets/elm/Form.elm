@@ -1,3 +1,7 @@
+import Date exposing (Date)
+import Date.Extra.Config.Config_en_gb exposing (config)
+import Date.Extra.Core exposing (toFirstOfMonth)
+import Date.Extra.Format exposing (format)
 import Html exposing (Html, Attribute, a, button, div, input, label, text)
 import Html.Events exposing (keyCode,
                              on,
@@ -38,7 +42,8 @@ type alias Station =
 
 
 type alias Model =
-  { displayFromSuggestions : Bool
+  { date : Maybe Date
+  , displayFromSuggestions : Bool
   , displayToSuggestions : Bool
   , error : Bool
   , errorMessage : String
@@ -47,7 +52,6 @@ type alias Model =
   , stations : List Station
   , suggestions : List Station
   , suggestionIndex : Maybe Int
-  , time : Maybe Time
   , toStation : Maybe Station
   , toValue : String
   }
@@ -55,11 +59,6 @@ type alias Model =
 
 type alias Flags =
   { stations : String }
-
-
--- stationsDecoder : Decoder (List Station)
--- stationsDecoder =
---   Json.list ()
 
 
 stationDecoder : Json.Decoder Station
@@ -76,7 +75,8 @@ decodeStations jsonString =
 
 emptyModel : Model
 emptyModel =
-  { displayFromSuggestions = False
+  { date = Nothing
+  , displayFromSuggestions = False
   , displayToSuggestions = False
   , error = False
   , errorMessage = ""
@@ -85,7 +85,6 @@ emptyModel =
   , stations = []
   , suggestions = []
   , suggestionIndex = Nothing
-  , time = Nothing
   , toStation = Nothing
   , toValue = ""
   }
@@ -128,7 +127,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
     CurrentTimeFetched time ->
-      { model | time = Just time } ! []
+      { model | date = Just <| Date.fromTime time } ! []
 
     DoNothing ->
       model ! []
@@ -187,18 +186,20 @@ update msg model =
       selectToStation station model ! []
 
     SetDate dateString ->
-      model ! []
-      -- case Date.fromString dateString of
-      --   Ok date ->
-      --     { model | date = Just date } ! []
+      case newDate model dateString of
+        Ok date ->
+          { model | date = Just date } ! []
 
-      --   Err msg ->
-      --     { model | errorMessage = msg } ! []
+        Err msg ->
+          { model | errorMessage = msg } ! []
 
-    SetTime time ->
-      let _ = Debug.log "time" time
-      in
-        model ! []
+    SetTime timeString ->
+      case newTime model timeString of
+        Ok date ->
+          { model | date = Just date } ! []
+
+        Err msg ->
+          { model | errorMessage = msg } ! []
 
     ToInputBlur ->
       { model | suggestions = []
@@ -282,6 +283,24 @@ stationAtIndex stations maybeInt =
       Nothing
 
 
+newDate : Model -> String -> Result String Date
+newDate { date } dateString =
+  case date of
+    Just currentDate ->
+      dateString ++ " " ++ format config "%H:%M" currentDate |> Date.fromString
+    Nothing ->
+      Err "no date set"
+
+
+newTime : Model -> String -> Result String Date
+newTime { date } timeString =
+  case date of
+    Just currentDate ->
+      format config "%Y-%m-%d" currentDate ++ " " ++ timeString |> Date.fromString
+    Nothing ->
+      Err "no date set"
+
+
 -- VIEW
 
 suggestion : (Station -> Msg) -> Maybe Int -> Int -> Station -> Html Msg
@@ -317,6 +336,12 @@ view : Model -> Html Msg
 view model =
   let
     suggestionsFn = suggestionsDropdown model.suggestions model.suggestionIndex
+    dateValue = case model.date of 
+                  Nothing -> ""
+                  Just date -> format config "%Y-%m-%d" date
+    timeValue = case model.date of 
+                  Nothing -> ""
+                  Just date -> format config "%H:%M" date
   in
     if model.error then
        text model.errorMessage
@@ -363,7 +388,7 @@ view model =
                                 , class "form-control"
                                 , onInput SetDate
                                 , type_ "date"
-                                , value "2017-07-12"
+                                , value dateValue
                                 ] []
                         ]
                     , div [ class "col-md-6" ]
@@ -372,6 +397,7 @@ view model =
                                 , class "form-control"
                                 , onInput SetTime
                                 , type_ "time"
+                                , value timeValue
                                 ] []
                         ]
                     ]
